@@ -72,6 +72,37 @@ function render() {
 }
 render();
 
+(function() {
+  function touchHandler(event) {
+    console.log(event.type);
+    let touches = event.changedTouches;
+    let first = touches[0];
+    let type = '';
+    switch (event.type) {
+      case 'touchstart': type = 'mousedown'; break;
+      case 'touchmove': type = 'mousemove'; break;
+      case 'touchend': type = 'mouseup'; break;
+      default: return;
+    }
+
+    let simulatedEvent = document.createEvent('MouseEvent');
+    simulatedEvent.initMouseEvent(
+      type, true, true, window, 1,
+      first.screenX, first.screenY,
+      first.clientX, first.clientY, false,
+      false, false, false, 0/* left */, null);
+    first.target.dispatchEvent(simulatedEvent);
+    if (first.target.className.baseVal === 'annotationLayer') {
+      event.preventDefault();
+    }
+  }
+  // add  event listners for the
+  document.addEventListener('touchstart', touchHandler, { passive: false });
+  document.addEventListener('touchmove', touchHandler, { passive: false });
+  document.addEventListener('touchend', touchHandler, { passive: false });
+  document.addEventListener('touchcancel', touchHandler, { passive: false });
+})();
+
 // Hotspot color stuff
 (function() {
   let hotspotColor = localStorage.getItem(`${RENDER_OPTIONS.documentId}/hotspot/color`) || 'darkgoldenrod';
