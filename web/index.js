@@ -11,7 +11,8 @@ function htmlEscape(text) {
 }
 
 const { UI } = PDFJSAnnotate;
-const documentId = 'example.pdf';
+let documentId;
+let devicePlateform;
 let PAGE_HEIGHT;
 let RENDER_OPTIONS = {
   documentId: documentId,
@@ -27,6 +28,7 @@ pdfjsLib.workerSrc = './shared/pdf.worker.js';
 let NUM_PAGES = 0;
 let renderedPages = [];
 let okToRender = false;
+
 document.getElementById('content-wrapper').addEventListener('scroll', (e) => {
   let visiblePageNum = Math.round(e.target.scrollTop / PAGE_HEIGHT) + 1;
   let visiblePage = document.querySelector(`.page[data-page-number="${visiblePageNum}"][data-loaded="false"]`);
@@ -45,6 +47,85 @@ document.getElementById('content-wrapper').addEventListener('scroll', (e) => {
     });
   }
 });
+
+// code for communication with mobile and desktop device for loading pdf files in view
+document.updateFromNative = function(message, jsonStructure, plateform) {
+  if (!message) {
+    // eslint-disable-next-line no-undef
+    JSBridge.showMessageInNative('PDF path is invalid or pdf does not exists');
+    return;
+  }
+  let isStorageSet = new Promise(function(resolve, reject) {
+    if (setLocalJson(jsonStructure)) {
+      resolve(true);
+      debugger;
+      devicePlateform = plateform;
+    }
+    else {
+      reject('Error initializing the storage value received is' + typeof jsonStructure);
+    }
+  });
+  isStorageSet.then(function(ret) {
+    console.log('Promise resolved value is ' + ret);
+    RENDER_OPTIONS.documentId = message;
+    initTextWrapper();
+    initPenWrapper();
+  }, function(res) {
+    console.error(res);
+    // eslint-disable-next-line no-undef
+    JSBridge.localStorageSetupErrorCallback(res);
+  });
+};
+
+// simulate call from android
+// document.updateFromNative('example.pdf', {'example.pdf/pen/size': 2}, 'android');
+document.getElementById('saveButton').addEventListener('click', sendLocalJsonToNative);
+
+function sendLocalJsonToNative() {
+  console.log('Sending annotations to' + devicePlateform + 'Device');
+  switch (devicePlateform) {
+    case 'android':
+      // eslint-disable-next-line no-undef
+      JSBridge.jsonContentCallback(RENDER_OPTIONS.documentId, JSON.stringify(localStorage));
+      break;
+    case 'ios':
+      let appName = 'credowebview';
+      let actionType = 'printcallback';
+      let jsonString = JSON.stringify(localStorage);
+      let url = appName + '://' + actionType + '#' + jsonString;
+      document.location.href = url;
+      break;
+    default:
+      console.error('Plateform Received is: ' + devicePlateform);
+      return;
+  }
+}
+
+function setLocalJson(jsonContent) {
+  Object.keys(jsonContent).forEach(function(key) {
+    localStorage.setItem(key, jsonContent[key]);
+  });
+  console.log('json received' + jsonContent);
+  return true;
+}
+
+setTimeout(() => {
+  document.updateFromNative('example.pdf', {'MathematicsStandard_SQP.pdf/pen/size': 2}, 'android');
+}, 5000);
+// document.updateFromNative('example.pdf', {'MathematicsStandard_SQP.pdf/pen/size': 2}, 'android');
+
+function getPdfId() {
+  if (!RENDER_OPTIONS.documentId) {
+    console.log(`Polling documentId variable and documentId value is ${documentId}`);
+    setTimeout(function() {
+      getPdfId();
+    }, 1000);
+  }
+  else {
+    render();
+  }
+}
+getPdfId();
 
 function render() {
   const loadingTask = pdfjsLib.getDocument({
@@ -70,11 +151,9 @@ function render() {
     });
   });
 }
-render();
 
 (function() {
   function touchHandler(event) {
-    console.log(event.type);
     let touches = event.changedTouches;
     let first = touches[0];
     let type = '';
@@ -168,7 +247,7 @@ render();
 })();
 
 // Text stuff
-(function() {
+function initTextWrapper() {
   let textSize;
   let textColor;
 
@@ -228,10 +307,10 @@ render();
   document.querySelector('.toolbar .text-size').addEventListener('change', handleTextSizeChange);
 
   initText();
-})();
+}
 
 // Pen stuff
-(function() {
+function initPenWrapper() {
   let penSize;
   let penColor;
 
@@ -291,7 +370,7 @@ render();
   document.querySelector('.toolbar .pen-size').addEventListener('change', handlePenSizeChange);
 
   initPen();
-})();
+};
 
 // Toolbar buttons
 (function() {
