@@ -58,7 +58,6 @@ document.updateFromNative = function(message, jsonStructure, plateform) {
   let isStorageSet = new Promise(function(resolve, reject) {
     if (setLocalJson(jsonStructure)) {
       resolve(true);
-      debugger;
       devicePlateform = plateform;
     }
     else {
@@ -77,16 +76,20 @@ document.updateFromNative = function(message, jsonStructure, plateform) {
   });
 };
 
-// simulate call from android
-// document.updateFromNative('example.pdf', {'example.pdf/pen/size': 2}, 'android');
 document.getElementById('saveButton').addEventListener('click', sendLocalJsonToNative);
 
 function sendLocalJsonToNative() {
   console.log('Sending annotations to' + devicePlateform + 'Device');
   switch (devicePlateform) {
     case 'android':
+      const filtered = Object.keys(localStorage)
+        .filter(key => key.startsWith(RENDER_OPTIONS.documentId))
+        .reduce((obj, key) => {
+          obj[key] = localStorage[key];
+          return obj;
+        }, {});
       // eslint-disable-next-line no-undef
-      JSBridge.jsonContentCallback(RENDER_OPTIONS.documentId, JSON.stringify(localStorage));
+      JSBridge.jsonContentCallback(RENDER_OPTIONS.documentId, JSON.stringify(filtered));
       break;
     case 'ios':
       let appName = 'credowebview';
@@ -102,6 +105,8 @@ function sendLocalJsonToNative() {
 }
 
 function setLocalJson(jsonContent) {
+  // TODO  check for incoming content if it is string or json object
+  jsonContent = JSON.parse(jsonContent);
   Object.keys(jsonContent).forEach(function(key) {
     localStorage.setItem(key, jsonContent[key]);
   });
@@ -110,7 +115,7 @@ function setLocalJson(jsonContent) {
 }
 
 setTimeout(() => {
-  document.updateFromNative('example.pdf', {'MathematicsStandard_SQP.pdf/pen/size': 2}, 'android');
+  document.updateFromNative('example.pdf', '{"MathematicsStandard_SQP.pdf/pen/size": 2}', 'android');
 }, 5000);
 // document.updateFromNative('example.pdf', {'MathematicsStandard_SQP.pdf/pen/size': 2}, 'android');
 
@@ -370,7 +375,7 @@ function initPenWrapper() {
   document.querySelector('.toolbar .pen-size').addEventListener('change', handlePenSizeChange);
 
   initPen();
-};
+}
 
 // Toolbar buttons
 (function() {
@@ -502,7 +507,7 @@ function initPenWrapper() {
 
 // Clear toolbar button
 (function() {
-  function handleClearClick(e) {
+  function handleClearClick() {
     if (confirm('Are you sure you want to clear annotations?')) {
       for (let i = 0; i < NUM_PAGES; i++) {
         document.querySelector(`div#pageContainer${i + 1} svg.annotationLayer`).innerHTML = '';
