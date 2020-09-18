@@ -20,6 +20,19 @@ export default class LocalStoreAdapter extends StoreAdapter {
         });
       }
     });
+    this.getAllAnnotations = (documentId) => {
+      debugger
+      return new Promise((resolve, reject) => {
+        let annotations = getAnnotations(documentId).filter((i) => {
+          return i.class === 'Annotation';
+        });
+
+        resolve({
+          documentId,
+          annotations
+        });
+      });
+    };
 
     this.getAnnotation = (documentId, annotationId) => {
       return Promise.resolve(getAnnotations(documentId)[findAnnotation(documentId, annotationId)]);
