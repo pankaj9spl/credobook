@@ -86,33 +86,29 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
 document.getElementById('saveButton').addEventListener('click', sendLocalJsonToNative);
 
 function sendLocalJsonToNative() {
-  console.log('Sending annotations to' + devicePlateform + 'Device');
-  switch (devicePlateform) {
-    case 'android':
-      let promise = globalStoreAdapter.getAllAnnotations(RENDER_OPTIONS.documentId);
-      promise.then((data) => {
-        console.log(data);
-      });
-      const filtered = Object.keys(localStorage)
-        .filter(key => key.startsWith(RENDER_OPTIONS.documentId))
-        .reduce((obj, key) => {
-          obj[key] = localStorage[key];
-          return obj;
-        }, {});
-      // eslint-disable-next-line no-undef
-      JSBridge.jsonContentCallback(RENDER_OPTIONS.documentId, JSON.stringify(filtered));
-      break;
-    case 'ios':
-      let appName = 'credowebview';
-      let actionType = 'printcallback';
-      let jsonString = JSON.stringify(localStorage);
-      let url = appName + '://' + actionType + '#' + jsonString;
-      document.location.href = url;
-      break;
-    default:
-      console.error('Plateform Received is: ' + devicePlateform);
-      return;
-  }
+  console.log('Sending annotations to ==> ' + devicePlateform + '<==Device');
+  let promise = globalStoreAdapter.getAllAnnotations(RENDER_OPTIONS.documentId);
+  promise.then((data) => {
+    switch (devicePlateform) {
+      case 'android':
+        // eslint-disable-next-line no-undef
+        JSBridge.jsonContentCallback(RENDER_OPTIONS.documentId, JSON.stringify(data.annotations));
+        break;
+      case 'ios':
+        let appName = 'credowebview';
+        let actionType = 'printcallback';
+        let jsonString = JSON.stringify(data.annotations);
+        let url = appName + '://' + actionType + '#' + jsonString;
+        document.location.href = url;
+        break;
+      case 'desktop':
+        window.Bridge.save_json_data(RENDER_OPTIONS.documentId, JSON.stringify(data.annotations));
+        break;
+      default:
+        console.error('Plateform Received is: ' + devicePlateform);
+        return;
+    }
+  });
 }
 
 function setLocalJson(jsonContent, documentId) {

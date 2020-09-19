@@ -21,7 +21,6 @@ export default class LocalStoreAdapter extends StoreAdapter {
       }
     });
     this.getAllAnnotations = (documentId) => {
-      debugger
       return new Promise((resolve, reject) => {
         let annotations = getAnnotations(documentId).filter((i) => {
           return i.class === 'Annotation';
