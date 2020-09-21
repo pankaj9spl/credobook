@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="53" height="165" viewBox="0 0 53 165">
+  <defs>
+    <clipPath id="clip-Artboard_1">
+      <rect width="53" height="165"/>
+    </clipPath>
+  </defs>
+  <g id="Artboard_1" data-name="Artboard – 1" clip-path="url(#clip-Artboard_1)">
+    <path id="Path_129" data-name="Path 129" d="M103.861,363.524l8.2,15.842,17.447,2.912-12.689,12.7,2.907,17.447-15.863-7.931L88,412.422l2.645-17.447-12.424-12.7,17.445-2.912Z" transform="translate(-78.223 -363.524)" fill="#a2a2a3" fill-rule="evenodd"/>
+    <path id="Path_464" data-name="Path 464" d="M103.861,363.524l8.2,15.842,17.447,2.912-12.689,12.7,2.907,17.447-15.863-7.931L88,412.422l2.645-17.447-12.424-12.7,17.445-2.912Z" transform="translate(-78.223 -308.524)" fill="#f7941d" fill-rule="evenodd"/>
+    <path id="Path_465" data-name="Path 465" d="M103.861,363.524l8.2,15.842,17.447,2.912-12.689,12.7,2.907,17.447-15.863-7.931L88,412.422l2.645-17.447-12.424-12.7,17.445-2.912Z" transform="translate(-78.223 -253.524)" fill="#db7d0b" fill-rule="evenodd"/>
+  </g>
+</svg>

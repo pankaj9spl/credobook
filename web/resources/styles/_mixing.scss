@@ -1,0 +1,119 @@
+@mixin border-radius ($radius){
+    -ms-border-radius: $radius;
+    -moz-border-radius: $radius;
+    -webkit-border-radius: $radius;
+    border-radius: $radius;
+}
+@mixin transition ($transition){
+    -ms-transition: $transition;
+    -moz-transition: $transition;
+    -webkit-transition: $transition;
+    transition: $transition;
+}
+
+@mixin box-shadow ($shadow){
+    -ms-box-shadow: $shadow;
+    -moz-box-shadow: $shadow;
+    -webkit-box-shadow: $shadow;
+    box-shadow: $shadow;
+}
+@mixin object-fit ($contain){
+    -ms-object-fit: $contain;
+    -moz-object-fit: $contain;
+    -webkit-object-fit: $contain;
+    object-fit: $contain;
+}
+
+
+@mixin sprite ($x: 0, $y: 0){
+    background-position: $x $y;
+}
+
+@mixin line-clamp-1 {
+    display: block;
+    clear: both;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden !important;
+}
+
+@mixin line-clamp-2 {
+    display: block;
+    clear: both;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden !important;
+}
+@mixin line-clamp-3 {
+    display: block;
+    clear: both;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+@mixin line-clamp-4{
+    display: block;
+    clear: both;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+$xs: 575px;
+$sm: 767px;
+$md: 991px;
+$lg: 1199px;
+$xl: 1399px;
+@mixin respond-to ($media){
+	@if $media == xs{
+		@media only screen and (max-width: $xs){ @content; }
+    }
+	@else if $media == sm{
+		@media only screen and (min-width: $xs) and (max-width: $sm){ @content; }
+	}
+	@else if $media == md{
+		@media only screen and (min-width: $sm + 1) and (max-width: $md){ @content; }
+	}
+	@else if $media == lg{
+		@media only screen and (min-width: $md + 1) and (max-width: $lg){ @content; }
+    }
+    @else if $media == down-sm{
+		@media only screen and (max-width: $sm){ @content; }
+	}
+    @else if $media == down-md{
+		@media only screen and (max-width: $md ){ @content; }
+    }
+    @else if $media == up-xs{
+		@media only screen and (min-width: $xs + 1){ @content; }
+	}
+    @else if $media == up-md{
+		@media only screen and (min-width: $md + 1 ){ @content; }
+	}
+	@else if $media == only-lg{
+		@media only screen and (max-width: $lg ){ @content; }
+    }
+    @else if $media == up-lg{
+		@media only screen and (min-width: $lg + 1 ){ @content; }
+    }
+    @else if $media == up-xl{
+		@media only screen and (min-width: $xl + 1 ){ @content; }
+  }
+}
+
+$h-lg: 768px;
+$h-xl: 850px;
+@mixin respond-height ($screen-height){
+	@if $screen-height == h-lg{
+		@media only screen and (max-height: $h-lg){ @content; }
+    }
+	@else if $screen-height == between (hlg, hxl){
+		@media only screen and (min-height: $h-lg) and (max-height: $h-xl){ @content; }
+  }
+  @else if $screen-height == h-xl{
+		@media only screen and (max-height: $h-xl){ @content; }
+  }
+}

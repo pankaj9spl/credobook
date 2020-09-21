@@ -1,0 +1,39 @@
+.navbar {
+  &.navigation {
+    background: $gray-bg;
+    padding: 0;
+    border-bottom: 4px solid $white;
+    .navbar-nav{
+      padding: 0;
+      .nav-item{
+        display: inline-block;
+        margin: 0 10px;
+        .nav-link{
+          padding: 0 17px;
+          font-size: 22px;
+          color: $white;
+          line-height: 38px;
+        }
+        &.active{
+          .nav-link{
+            @extend .common-gradient;
+          }
+        }
+      }
+    }
+  }
+}
+$hd-py: 15px;
+.top-header {
+  @extend .common-gradient;
+  padding: $hd-py 0;
+  text-align: center;
+  .header-title {
+    font-size: $md-font;
+    color: $white;
+    margin-bottom: 0;
+    @include respond-height(h-lg) {
+      font-size: $h-md-font;
+    }
+  }
+}

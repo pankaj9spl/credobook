@@ -1,0 +1,457 @@
+$bookmark-width: 280px;
+$bookmark-width-xs: 200px;
+$header-space: 10px;
+
+.table-content-header {
+  background-color: $light-gray;
+  padding: $header-space 0;
+  .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn){
+    width: auto !important;
+    max-width: 100%;
+  }
+  .bootstrap-select {
+    // width: 100% !important;
+    @include media-breakpoint-down(sm){
+      width: 100% !important;
+    }
+
+    .dropdown-toggle {
+      background-color: transparent;
+      @include border-radius(0);
+      border: 0;
+      padding: 0;
+      min-height: auto;
+      font-size: 22px;
+      &:focus {
+        @include box-shadow(none !important);
+        outline: 0 !important;
+        background-color: transparent;
+      }
+      .filter-option {
+        padding-left: 45px;
+        .filter-option-inner {
+          .filter-option-inner-inner {
+            color: $base-color;
+          }
+        }
+      }
+      &:after {
+        border: 0;
+        width: 31px;
+        height: 18px;
+        background: url(../img/icons/down-angle-color.svg) no-repeat 0 0;
+        background-size: 27px auto;
+        margin-top: 0;
+        margin-left: 0;
+        position: absolute;
+        left: 0;
+      }
+    }
+    .dropdown-menu {
+      // border: 1px solid #f8f9fa;
+      border: 0;
+      @include box-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
+      @include border-radius(0);
+      padding: 0;
+      margin-top: $header-space;
+      // width: 350px;
+      min-width: auto;
+      max-width: calc(100% - 160px) !important;
+      position: fixed !important;
+      margin: 0 80px;
+      max-height: 50% !important;
+      overflow-y: auto !important;
+      margin-top: $header-space * 2 !important;
+      @include media-breakpoint-down(sm) {
+        max-width: calc(100% - 30px) !important;
+        left: 15px !important;
+        right: 15px !important;
+        margin: 0;
+      }
+      li {
+        a {
+          &.dropdown-item{
+            white-space: normal;
+            word-break: break-word;
+          }
+          span {
+            &.text {
+              font-size: 18px;
+            }
+          }
+          &:hover, &:focus {
+            background-color: lighten($light-gray, 5%) !important;
+            color: $base-color !important;
+        }
+        }
+        &.active {
+          .active {
+            background-color: lighten($light-gray, 5%) !important;
+            color: $base-color;
+          }
+        }
+      }
+      .inner{
+        @include box-shadow(none);
+        width: auto;
+        position: static !important;
+        height: auto;
+        max-height: 100% !important;
+        overflow-y: inherit !important;
+        min-height: inherit !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+      }
+    }
+  }
+}
+.body-overflow {
+  overflow: hidden !important;
+}
+.table-content-section {
+  // width: calc(100% - #{$bookmark-width});
+  width: 100%;
+  background-color: $white;
+  overflow-y: auto;
+}
+.bookmark-section {
+  width: $bookmark-width;
+  background-color: $gray-bg;
+  position: absolute;
+  top: 0;
+  right: -(#{$bookmark-width});
+  height: 100%;
+  overflow-y: auto;
+  transition: all ease 0.5s;
+  z-index: 2;
+  @include media-breakpoint-down(xs){
+    width: $bookmark-width-xs;
+  }
+  .card {
+    .card-header {
+      padding: 0 20px 20px 20px;
+      .bkmr-title {
+        font-size: 22px;
+        color: $white;
+        margin-bottom: 0;
+        img {
+          margin-right: 12px;
+        }
+        span {
+          vertical-align: top;
+        }
+      }
+    }
+    .card-body {
+      padding: 0 20px 20px 20px;
+      .page-section {
+        margin-bottom: 15px;
+        &:last-child {
+          margin-bottom: 0;
+        }
+        .page-number {
+          background-color: $white;
+          color: $base-color;
+          font-size: 15px;
+          padding: 5px;
+        }
+        .bookmark-list {
+          padding-left: 15px;
+          li {
+            margin: 5px 0;
+            display: block;
+            position: relative;
+            padding-right: 25px;
+            .list-text {
+              font-size: 15px;
+              color: $white;
+              display: block;
+            }
+            .btn {
+              padding: 0;
+              position: absolute;
+              right: 0;
+              top: -4px;
+              min-height: auto;
+              font-size: inherit;
+              width: 15px;
+              border: 0;
+              @include border-radius(0);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+.fixed-icons {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  z-index: 3;
+  width: 230px;
+  @extend .d-flex;
+  @extend .justify-content-end;
+  text-align: right;
+  li {
+    display: inline-block;
+    margin: 6px 3px;
+    .btn-small {
+      padding: 0 !important;
+      .arrow-button {
+        width: calc(#{$h-input-btn-small} + 10px);
+        height: calc(#{$h-input-btn-small} + 10px);
+        &:after {
+          content: "";
+          width: calc(#{$h-input-btn-small} + 10px - 12px);
+          height: calc(#{$h-input-btn-small} + 10px - 12px);
+          border-width: 2px;
+        }
+        img {
+          max-width: 20px;
+          max-height: 20px;
+        }
+      }
+    }
+    &.more-effect {
+      background-color: transparent !important;
+      &.show {
+        .btn {
+          position: relative;
+          z-index: 1001;
+        }
+      }
+      .dropdown-menu {
+        min-width: 100%;
+        width: 100%;
+        border: 0;
+        @include border-radius($btn-radius);
+        padding: 15px 0;
+        top: 100% !important;
+        // z-index: -1;
+        padding-bottom: 47px;
+        @include box-shadow($box-shadow);
+        .menu-list {
+          li {
+            margin: 0 0 8px 0;
+            display: block;
+            text-align: center;
+            .tool-link {
+              width: 30px;
+              height: 30px;
+              @include border-radius($round-radius);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              text-align: center;
+              margin: 0 auto;
+              background-color: $gray-bg;
+              &:last-child {
+                margin-bottom: 0;
+              }
+              &.color {
+                span {
+                  width: 100%;
+                  height: 100%;
+                  @include border-radius($round-radius);
+                }
+              }
+              img {
+                max-width: 24px;
+              }
+            }
+          }
+        }
+      }
+      &.for-border {
+        .dropdown-menu {
+          .menu-list {
+            li {
+              .tool-link {
+                background-color: transparent;
+                .content-border {
+                  width: 100%;
+                  background-color: $black;
+                  display: block;
+                  &.one {
+                    height: 1px;
+                  }
+                  &.two {
+                    height: 2px;
+                  }
+                  &.three {
+                    height: 3px;
+                  }
+                  &.four {
+                    height: 4px;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+.bookmark-input{
+  @include border-radius(0.25rem !important);
+  padding: 0.375rem 0.75rem !important;
+}
+
+.bookmark-open {
+  .table-content-section {
+    // width: calc(100% - #{$bookmark-width});
+    transition: all ease 0.5s;
+  }
+  .bookmark-section {
+    right: 0;
+    transition: all ease 0.5s;
+  }
+}
+.search-content {
+  position: relative;
+  margin-top: 15px;
+  display: none;
+  .next-prev-search{
+    position: absolute;
+    right: calc(#{$h-input-btn-small} + 15px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0 !important;
+    line-height: 0;
+    img{
+      width: 18px;
+    }
+    .btn{
+      padding: 0 3px  !important;
+      min-height: auto !important;
+      font-size: inherit !important;
+      line-height: 0;
+    }
+    .prevbtn{
+      img{
+        transform: rotate(180deg);
+      }
+    }
+  }
+  .close-search {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 0 !important;
+    .arrow-button {
+      position: static;
+    }
+  }
+  .table-input {
+    border: 1px solid $light-gray;
+    width: 100%;
+    padding: 10px;
+    color: $secondary-color;
+    height: calc(#{$h-input-btn-small} + 5px);
+    font-size: 16px;
+    padding-right: calc(#{$h-input-btn-small} + 90px) !important;
+  }
+}
+
+.pink {
+  background-color: $pink;
+  .arrow-button {
+    &:after {
+      background: $pink;
+      border-color: darken($pink, 15%);
+    }
+  }
+}
+.yellow {
+  background-color: $yellow;
+  .arrow-button {
+    &:after {
+      background: $yellow;
+      border-color: darken($yellow, 15%);
+    }
+  }
+}
+.green {
+  background-color: $green;
+  .arrow-button {
+    &:after {
+      background: $green;
+      border-color: darken($green, 15%);
+    }
+  }
+}
+.cyan {
+  .arrow-button {
+    background-color: $cyan;
+    &:after {
+      background: $cyan;
+      border-color: darken($cyan, 15%);
+    }
+  }
+}
+
+.for-border {
+  background-color: transparent !important;
+  &.pink {
+    .content-border {
+      background-color: $pink !important;
+    }
+  }
+  &.yellow {
+    .content-border {
+      background-color: $yellow !important;
+    }
+  }
+  &.green {
+    .content-border {
+      background-color: $green !important;
+    }
+  }
+  &.cyan {
+    .content-border {
+      background-color: $cyan !important;
+    }
+  }
+}
+
+.more-buttons {
+  opacity: 0;
+  position: absolute;
+  z-index: 999;
+  left: -99%;
+  top: -99%;
+  pointer-events: none;
+  -webkit-user-select: none;
+  &.show {
+    opacity: 1;
+    -webkit-transition: opacity 0.2s;
+    -moz-transition: opacity 0.2s;
+    transition: opacity 0.2s;
+    pointer-events: auto;
+    left: 0 !important;
+    top: auto !important;
+    bottom: 100%;
+  }
+  .close-button{
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 6px;
+    @include media-breakpoint-down(md){
+      right: -3px;
+    }
+  }
+}
+@include media-breakpoint-down(md){
+  .header-component{
+    + .table-content-header{
+      .dropdown{
+        &.bootstrap-select{
+          padding-left: 47px;
+        }
+      } 
+    }
+  }
+}

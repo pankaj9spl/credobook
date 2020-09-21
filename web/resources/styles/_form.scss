@@ -1,0 +1,297 @@
+.sign-in {
+  padding: $space 0;
+  width: 100%;
+  .sign-form {
+    margin-top: 30px;
+    .forgot-create {
+      margin-top: 35px;
+      // color: $base-color;
+      font-size: $md-font;
+      text-align: center;
+      @include respond-height(h-lg) {
+        font-size: $h-md-font;
+      }
+      a {
+        color: $base-color;
+        font-size: $md-font;
+        @include respond-height(h-lg) {
+          font-size: $h-md-font;
+        }
+        &:hover {
+          color: $secondary-color;
+        }
+        &.create-text {
+          color: $secondary-color;
+        }
+      }
+    }
+  }
+}
+.form-group {
+  position: relative;
+  .form-label-control {
+    color: $primary-color;
+    display: block;
+  }
+  .form-control {
+    @include border-radius($input-radius);
+    border-color: $input-border-color;
+    height: $h-input-btn;
+    padding: 23px 15px;
+    border-width: 2px;
+    font-size: 22px;
+    color: $secondary-color;
+    &::-webkit-input-placeholder {
+      color: $input-placeholder;
+    }
+    &::-moz-placeholder {
+      color: $input-placeholder;
+    }
+    &::-ms-input-placeholder {
+      color: $input-placeholder;
+    }
+    &::placeholder {
+      color: $input-placeholder;
+    }
+    &:focus {
+      @include box-shadow(none);
+      outline: none;
+      border-color: $primary-color;
+    }
+    &.white-input {
+      border-color: $white;
+      background-color: transparent;
+      color: $white;
+      &::-webkit-input-placeholder {
+        color: $white;
+      }
+      &::-moz-placeholder {
+        color: $white;
+      }
+      &::-ms-input-placeholder {
+        color: $white;
+      }
+      &::placeholder {
+        color: $white;
+      }
+      &:focus {
+        background-color: transparent;
+      }
+    }
+  }
+  $icon-width: 35px;
+  .input {
+    position: relative;
+    .form-control {
+      padding-left: calc(#{$icon-width} + 25px);
+    }
+    .input-icon {
+      position: absolute;
+      left: 15px;
+      top: 0;
+      width: $icon-width;
+      text-align: center;
+      height: $h-input-btn;
+      display: flex;
+      justify-content: center;
+      img {
+        max-width: 100%;
+      }
+    }
+  }
+}
+.terms-condiotion {
+  font-size: 16px;
+  font-style: italic;
+  text-align: center;
+  a{
+    text-decoration: underline;
+  }
+}
+label.error {
+  color: #dc3545;
+  font-size: 15px;
+  margin-bottom: 0;
+  margin-top: 0.35rem;
+}
+.star-feedback {
+  margin-bottom: 85px;
+  .rating {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    overflow: hidden;
+    flex-direction: row-reverse;
+    position: relative;
+    input {
+      display: none;
+      &:checked {
+        ~ label,
+        ~ label ~ label {
+          background-image: url(../img/star-rating.svg);
+          @include sprite(0, -55px);
+        }
+      }
+      &:not(:checked) {
+        ~ label {
+          &:hover {
+            @include sprite(0, -110px);
+            ~ label {
+              @include sprite(0, -110px);
+            }
+          }
+        }
+      }
+    }
+    label {
+      cursor: pointer;
+      width: 51.28px;
+      height: 48.9px;
+      background-image: url(../img/star-rating.svg);
+      background-repeat: no-repeat;
+      @include sprite(0, 0);
+      background-size: 53px auto;
+    }
+  }
+}
+.add-store-form {
+  .select2 {
+    &.select2-container--default {
+      width: 100% !important;
+      @extend .form-control;
+      padding: 18px 15px !important;
+      .select2-selection--single {
+        border: 0;
+        background-color: transparent;
+        @include border-radius(0);
+        .select2-selection__rendered {
+          line-height: normal;
+          padding: 0;
+        }
+        .select2-selection__arrow {
+          display: none;
+        }
+      }
+      &.select2-container--open{
+        @include border-radius(calc(#{$input-radius} - 15px) calc(#{$input-radius} - 15px) 0 0);
+      }
+    }
+  }
+   
+}
+.select2 + .input-icon {
+  left: auto !important;
+  right: 15px !important;
+  z-index: 10;
+  height: auto !important;
+}
+.select2-container--open + .input-icon{
+  transform: rotate(180deg);
+}
+.select2-dropdown{
+  border: 2px solid $input-border-color;
+  @include border-radius(calc(#{$input-radius} - 15px));
+  .select2-results__option{
+    padding: 0.35rem 1.1rem;
+    &:last-child{
+      @include border-radius(0 0 calc(#{$input-radius} - 17px) calc(#{$input-radius} - 17px));
+    }
+    &:hover{
+      background-color: $light-gray;
+      color: $base-color;
+    }
+    &.select2-results__option--highlighted, &.select2-results__option--selected{
+      background-color: $light-gray;
+      color: $base-color;
+    }
+  }
+}
+
+
+
+.sort-by {
+  width: 375px;
+  display: inline-block;
+  .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn){
+    width: 100% !important;
+  }
+  .bootstrap-select {
+    width: 100% !important;
+    .selectpicker {
+      width: 100%;
+    }
+    .dropdown-toggle {
+      background-color: transparent;
+      border: 2px solid $white;
+      color: $white;
+      padding: 0 45px;
+      @include media-breakpoint-down(md){
+        padding: 0 15px;
+      }
+      &:focus {
+        @include box-shadow(none !important);
+        outline: 0 !important;
+        background-color: transparent;
+      }
+      .filter-option {
+        .filter-option-inner {
+          .filter-option-inner-inner {
+            color: $white;
+          }
+        }
+      }
+      &:after {
+        border: 0;
+        width: 31px;
+        height: 18px;
+        background: url(../img/icons/down-angle-white.svg) no-repeat 0 0;
+        background-size: 27px auto;
+        margin-top: 4px;
+      }
+    }
+    .dropdown-menu {
+      border: 0;
+      @include border-radius(0);
+      margin: 0 30px;
+      min-width: calc(100% - 30px * 2);
+      padding: 0;
+      ul.inner {
+        margin: 0;
+        min-width: 100%;
+        font-size: $base-font-size;
+        color: $base-color;
+        li {
+          .dropdown-item {
+            padding: 0.35rem 1.1rem;
+            &:hover {
+              background-color: $light-gray;
+            }
+          }
+          &.active {
+            .active {
+              background-color: $light-gray;
+              color: $base-color;
+            }
+          }
+        }
+      }
+    }
+    &.show {
+      .dropdown-toggle {
+        &:after {
+          transform: rotate(-180deg);
+        }
+      }
+    }
+  }
+}
+
+textarea.form-control {
+  height: auto !important;
+}
+label.error {
+  color: #dc3545;
+  font-size: 15px;
+  margin-bottom: 0;
+  margin-top: 0.35rem;
+}
