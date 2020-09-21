@@ -103,13 +103,13 @@ function sendLocalJsonToNative() {
 
 function setLocalJson(jsonContent, documentId) {
   // TODO  check for incoming content if it is string or json object
-  localStorage.setItem(`${documentId}/annotations`, jsonContent);
+  // localStorage.setItem(`${documentId}/annotations`, jsonContent);
   return true;
 }
 
 setTimeout(() => {
   document.updateFromNative('example.pdf', '../example.pdf', jsonString, 'android');
-}, 5000);
+}, 100);
 
 function getPdfId() {
   if (!RENDER_OPTIONS.documentId) {
@@ -225,12 +225,17 @@ function initPenWrapper() {
   }
 
   function handlePenSizeChange(e) {
-    debugger;
-    setPen(e.target.value, penColor);
+    if (e.currentTarget.getAttribute('data-tool-type') === 'line-width') {
+      let width = e.currentTarget.getAttribute('data-value');
+      setPen(width, penColor);
+    }
   }
-
-  document.querySelector('.toolbar .pen-size').addEventListener('click', handlePenSizeChange);
-
+  document.querySelectorAll('a[data-tool-type]').forEach(item => {
+    item.addEventListener('click', event => {
+      // handle click
+      handlePenSizeChange(event);
+    });
+  });
   initPen();
 }
 
@@ -319,12 +324,16 @@ function initPenWrapper() {
   }
 
   function handleToolbarClick(e) {
-    debugger;
-    if (e.target.nodeName === 'BUTTON') {
-      setActiveToolbarItem(e.target.getAttribute('data-tooltype'), e.target);
+    if (e.currentTarget.nodeName === 'BUTTON') {
+      setActiveToolbarItem(e.currentTarget.getAttribute('data-tool-type'), e.currentTarget);
     }
   }
-  document.querySelector('button[data-tool-type]').addEventListener('click', handleToolbarClick);
+  document.querySelectorAll('button[data-tool-type]').forEach(item => {
+    item.addEventListener('click', event => {
+      // handle click
+      handleToolbarClick(event);
+    });
+  });
 })();
 
 // Scale/rotate
