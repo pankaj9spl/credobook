@@ -324,7 +324,7 @@ function initPenWrapper() {
       setActiveToolbarItem(e.target.getAttribute('data-tooltype'), e.target);
     }
   }
-  document.getElementsByClassName('btn').addEventListener('click', handleToolbarClick);
+  document.querySelector('button[data-tool-type]').addEventListener('click', handleToolbarClick);
 })();
 
 // Scale/rotate

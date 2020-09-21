@@ -284,11 +284,10 @@
                         </button>
                     </li>
                     <li class="">
-                        <button class="btn btn-small" data-tool-type="draw">
+                        <button id="longPress" class="btn btn-small" data-tool-type="draw">
                             <span class="arrow-button arrow-button-static ">
                                 <img src="resources/img/icons/pencil.svg" alt=""/>
                             </span>
-                            <!-- close-button -->
                         </button>
                         <div class="more-buttons">
                             <ul class="list-unstyled">
@@ -467,7 +466,7 @@
 
 
         $(function () {
-            var $win = $(window),
+            var $win = $('#longPress'),
                 $nav = $('.more-buttons'),
                 timeout = 300,
                 pos = {},
@@ -476,7 +475,7 @@
             setDelays();
 
             function showMenu(e) {
-
+                debugger;
                 pos.X = (e.type === 'touchstart') ? e.originalEvent.touches[0].pageX : e.pageX;
                 pos.Y = (e.type === 'touchstart') ? e.originalEvent.touches[0].pageY : e.pageY;
 
@@ -508,7 +507,7 @@
                 }
             };
 
-            $(window).on('mousedown touchstart', function (e) {
+              $win.on('mousedown touchstart', function (e) {
                 clearTimeout(this.downTimer);
                 this.downTimer = setTimeout(function () {
                     showMenu(e);
@@ -520,9 +519,9 @@
                 size.h = $win.height();
             }).resize();
 
-            window.oncontextmenu = function () {
-                return false;
-            }
+            // window.oncontextmenu = function () {
+            //     return false;
+            // }
 
             $('.close-button').click(function (e) {
                 $nav.removeClass('show').removeAttr('style');
