@@ -1,4 +1,5 @@
 import PDFJSAnnotate from '../';
+import {setPen} from "../src/UI/pen";
 const jsonString = '[]';
 
 const { UI } = PDFJSAnnotate;
@@ -103,7 +104,7 @@ function sendLocalJsonToNative() {
 
 function setLocalJson(jsonContent, documentId) {
   // TODO  check for incoming content if it is string or json object
-  // localStorage.setItem(`${documentId}/annotations`, jsonContent);
+  localStorage.setItem(`${documentId}/annotations`, jsonContent);
   return true;
 }
 
@@ -193,7 +194,6 @@ function initPenWrapper() {
 
   function setPen(size, color) {
     let modified = false;
-
     if (penSize !== size) {
       modified = true;
       penSize = size;
@@ -230,10 +230,23 @@ function initPenWrapper() {
       setPen(width, penColor);
     }
   }
+
+  function handlePenColorChange(e) {
+    debugger;
+    let color = e.currentTarget.getAttribute('data-value');
+    setPen(penSize, color);
+  }
   document.querySelectorAll('a[data-tool-type]').forEach(item => {
     item.addEventListener('click', event => {
       // handle click
       handlePenSizeChange(event);
+    });
+  });
+
+  document.querySelectorAll('a.tool-color').forEach(item => {
+    item.addEventListener('click', event => {
+      // handle click
+      handlePenColorChange(event);
     });
   });
   initPen();
@@ -243,14 +256,13 @@ function initPenWrapper() {
 (function() {
   let tooltype = localStorage.getItem(`${RENDER_OPTIONS.documentId}/tooltype`) || 'cursor';
   if (tooltype) {
-    setActiveToolbarItem(tooltype, document.querySelector(`.toolbar button[data-tooltype=${tooltype}]`));
+    setActiveToolbarItem(tooltype, document.querySelector(`.toolbar button[data-tool-type=${tooltype}]`));
   }
 
   function setActiveToolbarItem(type, button) {
     let active = document.querySelector('.toolbar button.active');
     if (active) {
       active.classList.remove('active');
-
       switch (tooltype) {
         case 'cursor':
           UI.disableEdit();
