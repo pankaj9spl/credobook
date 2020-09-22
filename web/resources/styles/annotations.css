@@ -22,16 +22,16 @@ body {
 
 #content-wrapper {
     position: absolute;
-    top: 35px;
+    top: 0;
     left: 0;
-    right: 250px;
+    right: 0;
     bottom: 0;
     overflow: auto;
 }
 
 #comment-wrapper {
     position: absolute;
-    top: 35px;
+    top: 0;
     right: 0;
     bottom: 0;
     overflow: auto;

@@ -7,13 +7,10 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: $font-regular;
   font-size: $base-font-size;
   color: $base-color;
   font-weight: 400;
   line-height: normal;
-  background: url(#{$body-bg}) no-repeat center center;
-  background-size: cover;
 }
 p {
   font-size: $base-font-size;
@@ -64,16 +61,7 @@ input[type="radio"] {
 .xs-font {
   font-size: $xs-font;
 }
-.f-light {
-  font-family: $font-light;
-}
 
-.f-semi-bold {
-  font-family: $font-semi-bold;
-}
-.f-bold {
-  font-family: $font-bold;
-}
 .line-clamp-1 {
   @include line-clamp-1;
 }
@@ -459,7 +447,7 @@ a.btn {
         color: $white;
         text-align: center;
         line-height: 22px;
-        @extend .f-bold;
+        
         font-size: 16px;
         margin-right: 10px;
       }
@@ -666,7 +654,7 @@ $photo-dimention: 170px;
           .text {
             color: $white;
             b {
-              @extend .f-bold;
+              
             }
           }
         }
@@ -772,7 +760,7 @@ $photo-dimention: 170px;
     color: $white;
     margin: 0;
     b {
-      @extend .f-bold;
+      
     }
   }
 }
@@ -848,7 +836,7 @@ $photo-dimention: 170px;
             .btn {
               min-width: auto;
               padding-right: 45px !important;
-              @extend .f-bold;
+              
             }
           }
           .delete-book {
@@ -994,6 +982,7 @@ $photo-dimention: 170px;
   bottom: 15px;
   top: auto;
   position: fixed;
+  z-index: 2;
   img{
     transform: rotate(180deg);
   }
@@ -1004,11 +993,10 @@ $photo-dimention: 170px;
     @include box-shadow($box-shadow);
     padding: 30px 50px !important;
     .swal2-title{
-      @extend .f-bold;
+      
       font-size: $md-font;
     }
     .swal2-content{
-      font-family: $font-regular;
       font-size: $base-font-size;
     }
     .swal2-confirm, .swal2-cancel{
@@ -1042,7 +1030,6 @@ $photo-dimention: 170px;
       padding: 25px;
       .modal-body-title{
         font-size: $md-font;
-        @extend .f-bold;
         margin: 0 0 .4em;
         padding: 0;
         display: block;

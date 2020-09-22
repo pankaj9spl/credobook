@@ -107,6 +107,7 @@ $header-space: 10px;
 }
 .body-overflow {
   overflow: hidden !important;
+
 }
 .table-content-section {
   // width: calc(100% - #{$bookmark-width});
@@ -189,7 +190,7 @@ $header-space: 10px;
   bottom: 15px;
   right: 15px;
   z-index: 3;
-  width: 230px;
+  // max-width: 300px;
   @extend .d-flex;
   @extend .justify-content-end;
   text-align: right;
@@ -236,6 +237,9 @@ $header-space: 10px;
             margin: 0 0 8px 0;
             display: block;
             text-align: center;
+            &:hover{
+              background-color: lighten($light-gray, 5%) !important;
+            }
             .tool-link {
               width: 30px;
               height: 30px;
@@ -246,9 +250,12 @@ $header-space: 10px;
               text-align: center;
               margin: 0 auto;
               background-color: $gray-bg;
+              cursor: pointer;
+              
               &:last-child {
                 margin-bottom: 0;
               }
+              
               &.color {
                 span {
                   width: 100%;
@@ -269,6 +276,7 @@ $header-space: 10px;
             li {
               .tool-link {
                 background-color: transparent;
+                @include border-radius(0);
                 .content-border {
                   width: 100%;
                   background-color: $black;
@@ -311,8 +319,9 @@ $header-space: 10px;
 }
 .search-content {
   position: relative;
-  margin-top: 15px;
+  margin-top: 2px;
   display: none;
+  z-index: 3;
   .next-prev-search{
     position: absolute;
     right: calc(#{$h-input-btn-small} + 15px);
@@ -430,18 +439,19 @@ $header-space: 10px;
     -moz-transition: opacity 0.2s;
     transition: opacity 0.2s;
     pointer-events: auto;
-    left: 0 !important;
+    left: auto !important;
     top: auto !important;
+    right: 0 !important;
     bottom: 100%;
   }
   .close-button{
     position: absolute;
     top: 100%;
-    right: 0;
+    right: 2px;
     margin-top: 6px;
-    @include media-breakpoint-down(md){
-      right: -3px;
-    }
+    // @include media-breakpoint-down(md){
+    //   right: -3px;
+    // }
   }
 }
 @include media-breakpoint-down(md){

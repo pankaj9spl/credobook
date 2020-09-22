@@ -213,7 +213,7 @@
 						<span>Bookmarks</span>
 					</h4>
 				</div>
-				<div class="card-body">
+				<div class="card-body" id="bookMarkContainer">
 					<div class="page-section">
 						<h5 class="page-number">Page 1</h5>
 						<ul class="list-unstyled bookmark-list">
@@ -256,7 +256,7 @@
 				<li>
 					<button class="btn btn-small" data-tool-type="cursor">
 	          <span class="arrow-button arrow-button-static">
-              <img src="resources/img/icons/delete.svg" alt=""/></span>
+              <img src="resources/img/icons/cursor.svg" alt=""/></span>
 					</button>
 				</li>
 				<li>
@@ -279,7 +279,7 @@
 					</button>
 					<div class="more-buttons">
 						<ul class="list-unstyled">
-							<li class="dropup more-effect pink">
+							<li class="dropup more-effect">
 								<button class="btn btn-small" data-toggle="dropdown">
                   <span class="arrow-button arrow-button-static"><img
                       src="resources/img/icons/color-palette.svg" alt=""/></span>
@@ -309,7 +309,7 @@
 									</ul>
 								</div>
 							</li>
-							<li class="dropup more-effect for-border pink">
+							<li class="dropup more-effect for-border">
 								<button class="btn btn-small" data-toggle="dropdown">
 		              <span class="arrow-button arrow-button-static">
 	                  <img src="resources/img/icons/grid.svg" alt=""/>
@@ -375,7 +375,7 @@
 						<div class="form-group mb-0">
 							<div class="input">
 								<div>
-                  <textarea class="bookmark-input form-control" id="bookmark" name="bookmark"
+                  <textarea class="bookmark-input form-control" id="bookmarkText" name="bookmark"
                     type="text" placeholder="Enter bookmark here"></textarea>
 								</div>
 							</div>
@@ -508,13 +508,14 @@
 			size.h = $win.height();
 		}).resize();
 
-		// window.oncontextmenu = function () {
-		//     return false;
-		// }
+		$win.click(function (e) {
+			$nav.addClass('show');
+		});
 
 		$('.close-button').click(function (e) {
 			$nav.removeClass('show').removeAttr('style');
 		});
+
 	});
 </script>
 </body>

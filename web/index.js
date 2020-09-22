@@ -1,8 +1,6 @@
 import PDFJSAnnotate from '../';
 import * as $ from 'jquery';
-const jsonString = '[]';
-console.log('Jquery is working');
-
+import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
 let documentId;
 let documentPath;
@@ -80,6 +78,7 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     RENDER_OPTIONS.documentId = documentId;
     RENDER_OPTIONS.documentPath = documentPath;
     initPenWrapper();
+    initBookMarks(document, window);
   }, function(res) {
     console.error(res);
     // eslint-disable-next-line no-undef
@@ -364,17 +363,97 @@ function initPenWrapper() {
 
 // Handle book marks in pdf
 
-(function(document, window){
-  function handleBookmarks(e){
-    debugger;
+function initBookMarks(document, window) {
+  let bookMarkContainer = document.getElementById('bookMarkContainer');
+  // bookMarkContainer.innerHTML = '';
 
+  attachBookMarkToView(bookMarkContainer);
+
+  function attachBookMarkToView(e) {
+    e.innerHTML = '';
+    let bookmarks = getBookMarks();
+    for (let i = 1; i < NUM_PAGES; i++) {
+      let pageBookMarks = bookmarks.filter((x) => x.page === String(i));
+      if (pageBookMarks.length) {
+        let bookmarkViewEle = createPageBookmarkView(i, pageBookMarks);
+        e.appendChild(bookmarkViewEle);
+      }
+    }
   }
-  document.getElementById('bookmark-button').addEventListener('click', handleBookmarks)
 
-})(document, window);
+  function createPageBookmarkView(page, bookMarkList) {
+    let div = document.createElement('div');
+    div.classList += 'page-section';
+    let h5 = document.createElement('h5');
+    h5.classList += 'page-number';
+    h5.textContent = `Page ${page}`;
+    div.appendChild(h5);
+    let ul = document.createElement('ul');
+    ul.classList = ['list-unstyled  bookmark-list'];
+    bookMarkList.forEach((bookmark) => {
+      let li = document.createElement('li');
+      let a = document.createElement('a');
+      a.classList += 'list-text';
+      a.textContent = `${bookmark.text}`;
+      let button = document.createElement('button');
+      button.className = 'btn';
+      button.dataset.page = page;
+      button.dataset.text = page;
+      let image = document.createElement('img');
+      image.src = 'resources/img/icons/delete.svg';
+      button.addEventListener('click', function(e) {
+        removeBookmark(bookmark.uuid);
+        e.currentTarget.parentElement.parentElement.remove();
+      });
+      button.appendChild(image);
+      a.appendChild(button);
+      li.appendChild(a);
+      ul.appendChild(li);
+      div.appendChild(ul);
+    });
+    return div;
+  }
 
+  function getBookMarks() {
+    return JSON.parse(localStorage.getItem(`${RENDER_OPTIONS.documentId}/bookmarks`)) || [];
+  }
 
+  function setBookMarks(bookMarks) {
+    localStorage.setItem(`${RENDER_OPTIONS.documentId}/bookmarks`, JSON.stringify(bookMarks));
+  }
 
+  function addBookMark(text, pageNumber) {
+    let bookMarks = getBookMarks();
+    bookMarks.push({text: text, page: pageNumber, uuid: uuid()});
+    setBookMarks(bookMarks);
+    return true;
+  }
+
+  function removeBookmark(uuid) {
+    let bookMarks = getBookMarks();
+    bookMarks = bookMarks.filter((x) => x.uuid !== uuid);
+    setBookMarks(bookMarks);
+    return true;
+  }
+
+  function handleAddBookmark(e) {
+    let visiblePage = document.querySelector('#content-wrapper .page[data-loaded="true"]');
+    let pageToBookmark = visiblePage.getAttribute('data-page-number');
+    let bookmarkText = document.getElementById('bookmarkText');
+    let res = addBookMark(bookmarkText.value, pageToBookmark);
+    if (res) {
+      let modal = document.getElementById('starPopuo');
+      let modalBackdrop = document.querySelector('div.modal-backdrop');
+      modal.classList.remove('show');
+      modal.style.display = 'none';
+      modalBackdrop.classList.remove('show');
+      modalBackdrop.style.display = 'none';
+      attachBookMarkToView(bookMarkContainer);
+      alert('Bookmark Added');
+    }
+  }
+  document.getElementById('bookmark-button').addEventListener('click', handleAddBookmark);
+}
 
 // Scale/rotate
 // (function() {
