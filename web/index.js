@@ -1,6 +1,7 @@
 import PDFJSAnnotate from '../';
-import {setPen} from "../src/UI/pen";
+import * as $ from 'jquery';
 const jsonString = '[]';
+console.log('Jquery is working');
 
 const { UI } = PDFJSAnnotate;
 let documentId;
@@ -51,19 +52,33 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     return;
   }
   let isStorageSet = new Promise(function(resolve, reject) {
-    if (setLocalJson(jsonStructure, documentId)) {
-      resolve(true);
-      devicePlateform = plateform;
+    if (plateform === 'android') {
+      $.getJSON(jsonStructure, function(data) {
+        jsonStructure = JSON.stringify(data);
+        if (setLocalJson(jsonStructure, documentId)) {
+          resolve(true);
+          devicePlateform = plateform;
+        }
+        else {
+          reject('Error initializing the storage value received is' + typeof jsonStructure);
+        }
+      });
     }
     else {
-      reject('Error initializing the storage value received is' + typeof jsonStructure);
+      if (setLocalJson(jsonStructure, documentId)) {
+        resolve(true);
+        devicePlateform = plateform;
+      }
+      else {
+        reject('Error initializing the storage value received is' + typeof jsonStructure);
+      }
     }
   });
+
   isStorageSet.then(function(ret) {
     console.log('Promise resolved value is ' + ret);
     RENDER_OPTIONS.documentId = documentId;
     RENDER_OPTIONS.documentPath = documentPath;
-    // initTextWrapper();
     initPenWrapper();
   }, function(res) {
     console.error(res);
@@ -109,7 +124,7 @@ function setLocalJson(jsonContent, documentId) {
 }
 
 setTimeout(() => {
-  document.updateFromNative('example.pdf', '../example.pdf', jsonString, 'android');
+  document.updateFromNative('example.pdf', '../example.pdf', '../test.json', 'android');
 }, 100);
 
 function getPdfId() {
@@ -232,7 +247,6 @@ function initPenWrapper() {
   }
 
   function handlePenColorChange(e) {
-    debugger;
     let color = e.currentTarget.getAttribute('data-value');
     setPen(penSize, color);
   }
@@ -347,6 +361,20 @@ function initPenWrapper() {
     });
   });
 })();
+
+// Handle book marks in pdf
+
+(function(document, window){
+  function handleBookmarks(e){
+    debugger;
+
+  }
+  document.getElementById('bookmark-button').addEventListener('click', handleBookmarks)
+
+})(document, window);
+
+
+
 
 // Scale/rotate
 // (function() {
