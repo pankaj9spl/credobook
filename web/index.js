@@ -2,6 +2,7 @@ import PDFJSAnnotate from '../';
 import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
+
 let documentId;
 let documentPath;
 let devicePlateform;
@@ -77,8 +78,8 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     console.log('Promise resolved value is ' + ret);
     RENDER_OPTIONS.documentId = documentId;
     RENDER_OPTIONS.documentPath = documentPath;
-    initPenWrapper();
     initBookMarks(document, window);
+    initPenWrapper();
   }, function(res) {
     console.error(res);
     // eslint-disable-next-line no-undef
@@ -122,9 +123,9 @@ function setLocalJson(jsonContent, documentId) {
   return true;
 }
 
-setTimeout(() => {
-  document.updateFromNative('example.pdf', '../example.pdf', '../test.json', 'android');
-}, 100);
+// setTimeout(() => {
+//   document.updateFromNative('example.pdf', '../example.pdf', '../test.json', 'android');
+// }, 100);
 
 function getPdfId() {
   if (!RENDER_OPTIONS.documentId) {
@@ -366,7 +367,6 @@ function initPenWrapper() {
 function initBookMarks(document, window) {
   let bookMarkContainer = document.getElementById('bookMarkContainer');
   // bookMarkContainer.innerHTML = '';
-
   attachBookMarkToView(bookMarkContainer);
 
   function attachBookMarkToView(e) {

@@ -416,8 +416,6 @@
 <script src="resources/bootstrap/js/popper.min.js"></script>
 <script src="resources/bootstrap/js/bootstrap.min.js"></script>
 <script src="resources/plugins/select/bootstrap-select.min.js"></script>
-<script src="resources/js/jquery.validate.min.js"></script>
-<script src="resources/js/style.js"></script>
 <script src="shared/pdf.js"></script>
 <script src="shared/pdf_viewer.js"></script>
 <script src="__build__/index.js"></script>
@@ -427,25 +425,6 @@
 		$(".bookmark-toggle").click(function () {
 			$("body").toggleClass("bookmark-open");
 		});
-
-		$("#addBookmark").validate({
-			rules: {
-				bookmark: "required",
-			},
-			messages: {
-				bookmark: "Please enter bookmark",
-			}
-		});
-		$("#saveBookmark").validate({
-			rules: {
-				bookmarkSave: "required",
-			},
-			messages: {
-				bookmarkSave: "Please enter bookmark",
-			}
-		});
-	});
-	$(document).ready(function () {
 		$(".content-search").click(function () {
 			$(".search-content").slideToggle();
 		});
@@ -453,8 +432,6 @@
 			$(".search-content").slideUp();
 		});
 	});
-
-
 	$(function () {
 		var $win = $('#longPress'),
 				$nav = $('.more-buttons'),
