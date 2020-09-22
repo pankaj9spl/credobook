@@ -11,7 +11,7 @@ let RENDER_OPTIONS = {
   documentId: documentId,
   pdfDocument: null,
   documentPath: documentPath,
-  scale: parseFloat(localStorage.getItem(`${documentId}/scale`), 10) || 1.33,
+  scale: parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65,
   rotate: parseInt(localStorage.getItem(`${documentId}/rotate`), 10) || 0
 };
 
@@ -123,9 +123,9 @@ function setLocalJson(jsonContent, documentId) {
   return true;
 }
 
-// setTimeout(() => {
-//   document.updateFromNative('example.pdf', '../example.pdf', '../test.json', 'android');
-// }, 100);
+setTimeout(() => {
+  document.updateFromNative('example.pdf', '../example.pdf', '../test.json', 'android');
+}, 100);
 
 function getPdfId() {
   if (!RENDER_OPTIONS.documentId) {
@@ -458,7 +458,7 @@ function initBookMarks(document, window) {
 // Scale/rotate
 // (function() {
 //   function setScaleRotate(scale, rotate) {
-//     scale = parseFloat(scale, 10);
+//     scale = parseFloat(scale, 1);
 //     rotate = parseInt(rotate, 10);
 //
 //     if (RENDER_OPTIONS.scale !== scale || RENDER_OPTIONS.rotate !== rotate) {
@@ -503,65 +503,3 @@ function initBookMarks(document, window) {
 //   }
 //   document.querySelector('a.clear').addEventListener('click', handleClearClick);
 // })();
-
-// Comment stuff
-// (function(window, document) {
-//   let commentList = document.querySelector('#comment-wrapper .comment-list-container');
-//   let commentForm = document.querySelector('#comment-wrapper .comment-list-form');
-//   let commentText = commentForm.querySelector('input[type="text"]');
-//
-//   function supportsComments(target) {
-//     let type = target.getAttribute('data-pdf-annotate-type');
-//     return ['point', 'highlight', 'area'].indexOf(type) > -1;
-//   }
-//
-//   function insertComment(comment) {
-//     let child = document.createElement('div');
-//     child.className = 'comment-list-item';
-//     child.innerHTML = htmlEscape(comment.content);
-//
-//     commentList.appendChild(child);
-//   }
-//
-//   function handleAnnotationClick(target) {
-//     if (supportsComments(target)) {
-//       let documentId = target.parentNode.getAttribute('data-pdf-annotate-document');
-//       let annotationId = target.getAttribute('data-pdf-annotate-id');
-//
-//       PDFJSAnnotate.getStoreAdapter().getComments(documentId, annotationId).then((comments) => {
-//         commentList.innerHTML = '';
-//         commentForm.style.display = '';
-//         commentText.focus();
-//
-//         commentForm.onsubmit = function() {
-//           PDFJSAnnotate.getStoreAdapter().addComment(documentId, annotationId, commentText.value.trim())
-//             .then(insertComment)
-//             .then(() => {
-//               commentText.value = '';
-//               commentText.focus();
-//             });
-//
-//           return false;
-//         };
-//
-//         comments.forEach(insertComment);
-//       });
-//     }
-//   }
-//
-//   function handleAnnotationBlur(target) {
-//     if (supportsComments(target)) {
-//       commentList.innerHTML = '';
-//       commentForm.style.display = 'none';
-//       commentForm.onsubmit = null;
-//
-//       insertComment({content: 'No comments'});
-//     }
-//   }
-//
-//   UI.addEventListener('annotation:click', handleAnnotationClick);
-//   UI.addEventListener('annotation:blur', handleAnnotationBlur);
-//
-//   UI.setArrow(10, 'darkgoldenrod');
-//   UI.setCircle(10, 'darkgoldenrod');
-// })(window, document);
