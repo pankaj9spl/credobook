@@ -12085,7 +12085,6 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
 }
 
 .content-back-btn {
-  background-color: #DE252F;
   left: 15px;
   bottom: 15px;
   top: auto;
@@ -12093,9 +12092,25 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
   z-index: 2;
 }
 
-.content-back-btn img {
-  -webkit-transform: rotate(180deg);
-          transform: rotate(180deg);
+.content-back-btn.btn-small {
+  padding: 0 !important;
+}
+
+.content-back-btn.btn-small .arrow-button, .content-back-btn.btn-small .green-btn, .content-back-btn.btn-small .book-slider .slick-prev, .book-slider .content-back-btn.btn-small .slick-prev, .content-back-btn.btn-small .book-slider .slick-next, .book-slider .content-back-btn.btn-small .slick-next {
+  width: calc(35px + 10px);
+  height: calc(35px + 10px);
+}
+
+.content-back-btn.btn-small .arrow-button:after, .content-back-btn.btn-small .green-btn:after, .content-back-btn.btn-small .book-slider .slick-prev:after, .book-slider .content-back-btn.btn-small .slick-prev:after, .content-back-btn.btn-small .book-slider .slick-next:after, .book-slider .content-back-btn.btn-small .slick-next:after {
+  content: "";
+  width: calc(35px + 10px - 12px);
+  height: calc(35px + 10px - 12px);
+  border-width: 2px;
+}
+
+.content-back-btn.btn-small .arrow-button img, .content-back-btn.btn-small .green-btn img, .content-back-btn.btn-small .book-slider .slick-prev img, .book-slider .content-back-btn.btn-small .slick-prev img, .content-back-btn.btn-small .book-slider .slick-next img, .book-slider .content-back-btn.btn-small .slick-next img {
+  max-width: 20px;
+  max-height: 20px;
 }
 
 .swal2-container .swal2-popup {
@@ -12134,6 +12149,19 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
   font-size: 14px !important;
   min-height: 35px !important;
   min-width: 130px !important;
+  padding-right: 0 !important;
+}
+
+@media only screen and (max-height: 768px) {
+  .modal.table-content-modal .popup-button .btn-confirm, .modal.table-content-modal .popup-button .btn-cancel {
+    padding-right: 0.75rem !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .modal.table-content-modal .popup-button .btn-confirm, .modal.table-content-modal .popup-button .btn-cancel {
+    padding-right: 0.75rem !important;
+  }
 }
 
 .modal.table-content-modal .btn-cancel {
@@ -12908,7 +12936,7 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
 
 @media (max-width: 575.98px) {
   .bookmark-section {
-    width: 200px;
+    width: 220px;
   }
 }
 
@@ -12964,6 +12992,9 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
   font-size: 15px;
   color: #FFFFFF;
   display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .bookmark-section .card .card-body .page-section .bookmark-list li .btn, .bookmark-section .card .card-body .page-section .bookmark-list li .swal2-container .swal2-popup .swal2-confirm, .swal2-container .swal2-popup .bookmark-section .card .card-body .page-section .bookmark-list li .swal2-confirm, .bookmark-section .card .card-body .page-section .bookmark-list li .swal2-container .swal2-popup .swal2-cancel, .swal2-container .swal2-popup .bookmark-section .card .card-body .page-section .bookmark-list li .swal2-cancel, .bookmark-section .card .card-body .page-section .bookmark-list li .modal.table-content-modal .btn-confirm, .modal.table-content-modal .bookmark-section .card .card-body .page-section .bookmark-list li .btn-confirm, .bookmark-section .card .card-body .page-section .bookmark-list li .modal.table-content-modal .btn-cancel, .modal.table-content-modal .bookmark-section .card .card-body .page-section .bookmark-list li .btn-cancel {

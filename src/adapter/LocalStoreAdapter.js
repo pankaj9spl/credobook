@@ -33,6 +33,18 @@ export default class LocalStoreAdapter extends StoreAdapter {
       });
     };
 
+    this.getAllBookmarks = (documentId) => {
+      return new Promise((resolve, reject) => {
+        let bookmarks = getBookmarks(documentId).filter((i) => {
+          return i.class === 'Bookmarks';
+        });
+        resolve({
+          documentId,
+          bookmarks
+        });
+      });
+    };
+
     this.getAnnotation = (documentId, annotationId) => {
       return Promise.resolve(getAnnotations(documentId)[findAnnotation(documentId, annotationId)]);
     };
@@ -130,6 +142,10 @@ export default class LocalStoreAdapter extends StoreAdapter {
 
 function getAnnotations(documentId) {
   return JSON.parse(localStorage.getItem(`${documentId}/annotations`)) || [];
+}
+
+function getBookmarks(documentId) {
+  return JSON.parse(localStorage.getItem(`${documentId}/bookmarks`)) || [];
 }
 
 function updateAnnotations(documentId, annotations) {

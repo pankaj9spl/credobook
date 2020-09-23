@@ -93,36 +93,50 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
 document.getElementById('saveButton').addEventListener('click', sendLocalJsonToNative);
 
 function sendLocalJsonToNative() {
-  console.log('Sending annotations to ==> ' + devicePlateform + '<==Device');
-  let promise = globalStoreAdapter.getAllAnnotations(RENDER_OPTIONS.documentId);
-  promise.then((data) => {
-    switch (devicePlateform) {
-      case 'android':
-        // eslint-disable-next-line no-undef
-        JSBridge.jsonContentCallback(RENDER_OPTIONS.documentId, JSON.stringify(data.annotations));
-        break;
-      case 'ios':
-        let appName = 'credowebview';
-        let actionType = 'printcallback';
-        let jsonString = (JSON.stringify(data.annotations));
-        let escapedJsonParameters = escape(jsonString);
-        let url = appName + '://' + actionType + '#' + escapedJsonParameters;
-        // var url = appName + '://' + actionType + "#" + jsonString;
-        document.location.href = url;
-        break;
-      case 'desktop':
-        window.Bridge.save_json_data(RENDER_OPTIONS.documentId, JSON.stringify(data.annotations));
-        break;
-      default:
-        console.error('Plateform Received is: ' + devicePlateform);
-        return;
-    }
+  console.log('Sending annotations to ==> ' + devicePlateform + ' <==Device');
+  let bookmarks = globalStoreAdapter.getAllBookmarks(RENDER_OPTIONS.documentId);
+  bookmarks.then((bookmarks) => {
+    let annotations = globalStoreAdapter.getAllAnnotations(RENDER_OPTIONS.documentId);
+    annotations.then((annotations) => {
+      let allData = [
+        { annotations: annotations.annotations},
+        { bookmarks: bookmarks.bookmarks }
+      ];
+      console.info('Combined data is==> ', JSON.stringify(allData));
+      switch (devicePlateform) {
+        case 'android':
+          // eslint-disable-next-line no-undef
+          JSBridge.jsonContentCallback(RENDER_OPTIONS.documentId, JSON.stringify(allData));
+          break;
+        case 'ios':
+          let appName = 'credowebview';
+          let actionType = 'printcallback';
+          let jsonString = (JSON.stringify(allData));
+          let escapedJsonParameters = escape(jsonString);
+          let url = appName + '://' + actionType + '#' + escapedJsonParameters;
+          document.location.href = url;
+          break;
+        case 'desktop':
+          window.Bridge.save_json_data(RENDER_OPTIONS.documentId, JSON.stringify(allData));
+          break;
+        default:
+          console.error('Plateform Received is: ' + devicePlateform);
+          return;
+      }
+    });
   });
 }
 
 function setLocalJson(jsonContent, documentId) {
   // TODO  check for incoming content if it is string or json object
-  localStorage.setItem(`${documentId}/annotations`, jsonContent);
+  JSON.parse(jsonContent).forEach((item) => {
+    if (item.annotations) {
+      localStorage.setItem(`${documentId}/annotations`, JSON.stringify(item.annotations));
+    }
+    else {
+      localStorage.setItem(`${documentId}/bookmarks`, JSON.stringify(item.bookmarks));
+    }
+  });
   return true;
 }
 
@@ -391,6 +405,12 @@ function initBookMarks(document, window) {
     div.appendChild(h5);
     let ul = document.createElement('ul');
     ul.classList = ['list-unstyled  bookmark-list'];
+    div.onclick = function(e) {
+      let bookmarkHolder = e.currentTarget.querySelector('.bookmark-list');
+      if (bookmarkHolder.childElementCount === 0) {
+        e.currentTarget.remove();
+      }
+    };
     bookMarkList.forEach((bookmark) => {
       let li = document.createElement('li');
       let a = document.createElement('a');
@@ -425,7 +445,7 @@ function initBookMarks(document, window) {
 
   function addBookMark(text, pageNumber) {
     let bookMarks = getBookMarks();
-    bookMarks.push({text: text, page: pageNumber, uuid: uuid()});
+    bookMarks.push({type: 'bookmark', class: 'Bookmarks', text: text, page: pageNumber, uuid: uuid()});
     setBookMarks(bookMarks);
     return true;
   }
@@ -452,7 +472,6 @@ function initBookMarks(document, window) {
       modalBackdrop.classList.remove('show');
       modalBackdrop.style.display = 'none';
       bookmarkText.value = '';
-      alert('Bookmark Added');
       attachBookMarkToView(bookMarkContainer);
     }
   }

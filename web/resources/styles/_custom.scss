@@ -977,14 +977,28 @@ $photo-dimention: 170px;
   }
 }
 .content-back-btn{
-  background-color: $mid-red;
+  // background-color: $mid-red;
   left: 15px;
   bottom: 15px;
   top: auto;
   position: fixed;
   z-index: 2;
-  img{
-    transform: rotate(180deg);
+  &.btn-small {
+    padding: 0 !important;
+    .arrow-button {
+      width: calc(#{$h-input-btn-small} + 10px);
+      height: calc(#{$h-input-btn-small} + 10px);
+      &:after {
+        content: "";
+        width: calc(#{$h-input-btn-small} + 10px - 12px);
+        height: calc(#{$h-input-btn-small} + 10px - 12px);
+        border-width: 2px;
+      }
+      img {
+        max-width: 20px;
+        max-height: 20px;
+      }
+    }
   }
 }
 .swal2-container{
@@ -1022,6 +1036,18 @@ $photo-dimention: 170px;
       font-size: 14px !important;
       min-height: $h-input-btn-small !important;
       min-width: 130px !important;
+      padding-right: 0 !important;
+      
+    }
+    .popup-button{
+      .btn-confirm, .btn-cancel{
+        @include respond-height(h-lg) {
+          padding-right: 0.75rem !important;
+        }
+        @include media-breakpoint-down(md) {
+          padding-right: 0.75rem !important;
+        }
+      }
     }
     .btn-cancel{
       background: $btn-sm-bg !important;

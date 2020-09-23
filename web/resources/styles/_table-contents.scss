@@ -1,5 +1,5 @@
 $bookmark-width: 280px;
-$bookmark-width-xs: 200px;
+$bookmark-width-xs: 220px;
 $header-space: 10px;
 
 .table-content-header {
@@ -167,6 +167,9 @@ $header-space: 10px;
               font-size: 15px;
               color: $white;
               display: block;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              overflow: hidden;
             }
             .btn {
               padding: 0;
