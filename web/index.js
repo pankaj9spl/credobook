@@ -14,7 +14,7 @@ let RENDER_OPTIONS = {
   scale: parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65,
   rotate: parseInt(localStorage.getItem(`${documentId}/rotate`), 10) || 0
 };
-let currentPage;
+let currentPage = 1;
 PDFJSAnnotate.setStoreAdapter(new PDFJSAnnotate.LocalStoreAdapter());
 let globalStoreAdapter = PDFJSAnnotate.getStoreAdapter();
 pdfjsLib.workerSrc = './shared/pdf.worker.js';
@@ -366,7 +366,6 @@ function initPenWrapper() {
 })();
 
 // Handle book marks in pdf
-
 function initBookMarks(document, window) {
   let bookMarkContainer = document.getElementById('bookMarkContainer');
   bookMarkContainer.innerHTML = '';
@@ -375,7 +374,7 @@ function initBookMarks(document, window) {
     e.innerHTML = '';
     let bookmarks = getBookMarks();
     for (let i = 1; i < NUM_PAGES; i++) {
-      let pageBookMarks = bookmarks.filter((x) => x.page === String(i));
+      let pageBookMarks = bookmarks.filter((x) => x.page === i);
       if (pageBookMarks.length) {
         let bookmarkViewEle = createPageBookmarkView(i, pageBookMarks);
         e.appendChild(bookmarkViewEle);
@@ -454,6 +453,7 @@ function initBookMarks(document, window) {
       modalBackdrop.style.display = 'none';
       bookmarkText.value = '';
       alert('Bookmark Added');
+      attachBookMarkToView(bookMarkContainer);
     }
   }
   document.getElementById('bookmark-button').addEventListener('click', handleAddBookmark);
