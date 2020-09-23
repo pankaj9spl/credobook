@@ -6,9 +6,11 @@ app=./node_modules/.bin/webpack
 
 mkdir -p $output
 cp -rf ./shared/ $output/shared/
-cp -rf ./web/resources/ $output/resources/
+
+cp -rf $source/resources/ $output/resources/
 
 cp $source/example.pdf $output
 cp $source/index.html $output
+cp $source/test.json $output
 
 $app --config ./webpack.web-build.js
