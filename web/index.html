@@ -173,7 +173,7 @@
 	<link rel="stylesheet" type="text/css" href="shared/pdf_viewer.css"/>
 	<link rel="stylesheet" type="text/css" href="resources/styles/annotations.css"/>
 </head>
-<body>
+<body id="body">
 <div class="full-section">
 	<div class="table-content-header">
 		<div class="container-fluid full-container">
@@ -186,7 +186,7 @@
 		<div class="table-content-section h-100">
 			<div class="container-fluid full-container">
 				<button id="saveButton" type="button" class="btn back-btn content-back-btn">
-					<img src="resources/img/icons/long-arrow.svg" alt=""/>
+					<img src="resources/img/icons/close-sm.svg" alt=""/>
 				</button>
 				<div class="search-content form-group">
 					<input class="table-input form-control" type="text" placeholder="Search here...">
@@ -214,32 +214,7 @@
 					</h4>
 				</div>
 				<div class="card-body" id="bookMarkContainer">
-					<div class="page-section">
-						<h5 class="page-number">Page 1</h5>
-						<ul class="list-unstyled bookmark-list">
-							<li>
-								<a href="" class="list-text">Contact Us</a>
-								<button class="btn"><img src="resources/img/icons/delete.svg" alt=""/></button>
-							</li>
-						</ul>
-					</div>
-					<div class="page-section">
-						<h5 class="page-number">Page 2</h5>
-						<ul class="list-unstyled bookmark-list">
-							<li>
-								<a href="" class="list-text">Bookmark 1</a>
-								<button class="btn"><img src="resources/img/icons/delete.svg" alt=""/></button>
-							</li>
-							<li>
-								<a href="" class="list-text">Bookmark 2</a>
-								<button class="btn"><img src="resources/img/icons/delete.svg" alt=""/></button>
-							</li>
-							<li>
-								<a href="" class="list-text">Bookmark 3</a>
-								<button class="btn"><img src="resources/img/icons/delete.svg" alt=""/></button>
-							</li>
-						</ul>
-					</div>
+					<!--bookmark section here-->
 				</div>
 			</div>
 		</div>
@@ -254,21 +229,19 @@
 					</button>
 				</li>
 				<li>
-					<button class="btn btn-small" data-tool-type="cursor">
-	          <span class="arrow-button arrow-button-static">
-              <img src="resources/img/icons/cursor.svg" alt=""/></span>
-					</button>
 				</li>
 				<li>
 					<button class="btn btn-small bookmark-toggle">
             <span class="arrow-button arrow-button-static">
-              <img src="resources/img/icons/bookmark-sm.svg" alt=""/></span>
+              <img src="resources/img/icons/bookmark-sm.svg" alt=""/>
+            </span>
 					</button>
 				</li>
 				<li>
 					<button class="btn btn-small content-search">
 	          <span class="arrow-button arrow-button-static">
-              <img src="resources/img/icons/search.svg" alt=""/></span>
+              <img src="resources/img/icons/search.svg" alt=""/>
+	          </span>
 					</button>
 				</li>
 				<li class="">
@@ -281,8 +254,9 @@
 						<ul class="list-unstyled">
 							<li class="dropup more-effect">
 								<button class="btn btn-small" data-toggle="dropdown">
-                  <span class="arrow-button arrow-button-static"><img
-                      src="resources/img/icons/color-palette.svg" alt=""/></span>
+                  <span class="arrow-button arrow-button-static">
+	                  <img src="resources/img/icons/color-palette.svg" alt=""/>
+                  </span>
 								</button>
 								<div class="main-picker dropdown-menu">
 									<ul class="list-unstyled menu-list">
@@ -348,7 +322,7 @@
 								</button>
 							</li>
 							<li>
-								<button class="btn btn-small">
+								<button class="btn btn-small" data-tool-type="cursor">
                   <span class="arrow-button arrow-button-static">
                     <img src="resources/img/icons/delete.svg" alt=""/>
                   </span>
@@ -422,9 +396,6 @@
 <script>
 	$('.selectpicker').selectpicker();
 	$(document).ready(function () {
-		$(".bookmark-toggle").click(function () {
-			$("body").toggleClass("bookmark-open");
-		});
 		$(".content-search").click(function () {
 			$(".search-content").slideToggle();
 		});

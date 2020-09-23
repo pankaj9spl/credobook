@@ -14,7 +14,7 @@ let RENDER_OPTIONS = {
   scale: parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65,
   rotate: parseInt(localStorage.getItem(`${documentId}/rotate`), 10) || 0
 };
-
+let currentPage;
 PDFJSAnnotate.setStoreAdapter(new PDFJSAnnotate.LocalStoreAdapter());
 let globalStoreAdapter = PDFJSAnnotate.getStoreAdapter();
 pdfjsLib.workerSrc = './shared/pdf.worker.js';
@@ -26,6 +26,7 @@ let okToRender = false;
 
 document.getElementById('content-wrapper').addEventListener('scroll', (e) => {
   let visiblePageNum = Math.round(e.target.scrollTop / PAGE_HEIGHT) + 1;
+  currentPage = visiblePageNum;
   let visiblePage = document.querySelector(`.page[data-page-number="${visiblePageNum}"][data-loaded="false"]`);
 
   if (renderedPages.indexOf(visiblePageNum) === -1) {
@@ -78,8 +79,10 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     console.log('Promise resolved value is ' + ret);
     RENDER_OPTIONS.documentId = documentId;
     RENDER_OPTIONS.documentPath = documentPath;
-    initBookMarks(document, window);
     initPenWrapper();
+    setTimeout(() => {
+      initBookMarks(document, window);
+    }, 200);
   }, function(res) {
     console.error(res);
     // eslint-disable-next-line no-undef
@@ -366,8 +369,7 @@ function initPenWrapper() {
 
 function initBookMarks(document, window) {
   let bookMarkContainer = document.getElementById('bookMarkContainer');
-  // bookMarkContainer.innerHTML = '';
-  attachBookMarkToView(bookMarkContainer);
+  bookMarkContainer.innerHTML = '';
 
   function attachBookMarkToView(e) {
     e.innerHTML = '';
@@ -437,10 +439,12 @@ function initBookMarks(document, window) {
   }
 
   function handleAddBookmark(e) {
-    let visiblePage = document.querySelector('#content-wrapper .page[data-loaded="true"]');
-    let pageToBookmark = visiblePage.getAttribute('data-page-number');
     let bookmarkText = document.getElementById('bookmarkText');
-    let res = addBookMark(bookmarkText.value, pageToBookmark);
+    if (!bookmarkText.value) {
+      alert('Please enter bookmark title');
+      return;
+    }
+    let res = addBookMark(bookmarkText.value, currentPage);
     if (res) {
       let modal = document.getElementById('starPopuo');
       let modalBackdrop = document.querySelector('div.modal-backdrop');
@@ -448,11 +452,18 @@ function initBookMarks(document, window) {
       modal.style.display = 'none';
       modalBackdrop.classList.remove('show');
       modalBackdrop.style.display = 'none';
-      attachBookMarkToView(bookMarkContainer);
+      bookmarkText.value = '';
       alert('Bookmark Added');
     }
   }
   document.getElementById('bookmark-button').addEventListener('click', handleAddBookmark);
+  document.querySelector('.bookmark-toggle').addEventListener('click', function() {
+    let body = document.getElementById('body');
+    if (!body.classList.contains('bookmark-open')) {
+      attachBookMarkToView(bookMarkContainer);
+    }
+    body.classList.toggle('bookmark-open');
+  });
 }
 
 // Scale/rotate
