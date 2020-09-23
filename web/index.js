@@ -46,37 +46,39 @@ document.getElementById('content-wrapper').addEventListener('scroll', (e) => {
 
 // code for communication with mobile and desktop device for loading pdf files in view
 document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform) {
+  console.log('Update function called from ==> ', plateform);
   if (!documentPath) {
     // eslint-disable-next-line no-undef
     JSBridge.showMessageInNative('PDF path is invalid or pdf does not exists');
     return;
   }
   let isStorageSet = new Promise(function(resolve, reject) {
-    if (plateform === 'android') {
+    if (plateform === 'android' || plateform === 'ios' || plateform === 'desktop') {
       $.getJSON(jsonStructure, function(data) {
         jsonStructure = JSON.stringify(data);
-        if (setLocalJson(jsonStructure, documentId)) {
-          resolve(true);
+        setLocalJson(jsonStructure, documentId).then((response) => {
           devicePlateform = plateform;
-        }
-        else {
-          reject('Error initializing the storage value received is' + typeof jsonStructure);
-        }
+          resolve(response);
+        }, (err) => {
+          console.error(err);
+        });
       });
     }
     else {
-      if (setLocalJson(jsonStructure, documentId)) {
-        resolve(true);
+      setLocalJson(jsonStructure, documentId).then((response) => {
         devicePlateform = plateform;
-      }
-      else {
-        reject('Error initializing the storage value received is' + typeof jsonStructure);
-      }
+        resolve(response);
+      }, (err) => {
+        console.error(err);
+      });
     }
   });
 
   isStorageSet.then(function(ret) {
     console.log('Promise resolved value is ' + ret);
+    if (devicePlateform === 'desktop') {
+      RENDER_OPTIONS.scale = 1.33;
+    }
     RENDER_OPTIONS.documentId = documentId;
     RENDER_OPTIONS.documentPath = documentPath;
     initPenWrapper();
@@ -89,6 +91,21 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     JSBridge.localStorageSetupErrorCallback(res);
   });
 };
+
+function setLocalJson(jsonContent, documentId) {
+  // TODO  check for incoming content if it is string or json object
+  return new Promise((resolve, reject) => {
+    JSON.parse(jsonContent).forEach((item, index, array) => {
+      if (item.annotations) {
+        localStorage.setItem(`${documentId}/annotations`, JSON.stringify(item.annotations));
+      }
+      else {
+        localStorage.setItem(`${documentId}/bookmarks`, JSON.stringify(item.bookmarks));
+      }
+      if (index === array.length - 1) resolve(true);
+    });
+  });
+}
 
 document.getElementById('saveButton').addEventListener('click', sendLocalJsonToNative);
 
@@ -125,19 +142,6 @@ function sendLocalJsonToNative() {
       }
     });
   });
-}
-
-function setLocalJson(jsonContent, documentId) {
-  // TODO  check for incoming content if it is string or json object
-  JSON.parse(jsonContent).forEach((item) => {
-    if (item.annotations) {
-      localStorage.setItem(`${documentId}/annotations`, JSON.stringify(item.annotations));
-    }
-    else {
-      localStorage.setItem(`${documentId}/bookmarks`, JSON.stringify(item.bookmarks));
-    }
-  });
-  return true;
 }
 
 setTimeout(() => {
