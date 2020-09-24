@@ -82,15 +82,3 @@ body {
 .active {
     background: #aa0e91 !important;
 }
-
-.pdfViewer .page {
-  direction: ltr;
-  width: 816px;
-  height: 1056px;
-  margin: 1px auto 1px auto;
-  position: relative;
-  overflow: visible;
-  border: 2px solid transparent;
-  background-clip: content-box;
-  background-color: rgba(255, 255, 255, 1);
-}

@@ -3,6 +3,8 @@ import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
 
+let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
+
 let documentId;
 let documentPath;
 let devicePlateform;
@@ -53,7 +55,7 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     return;
   }
   let isStorageSet = new Promise(function(resolve, reject) {
-    if (plateform === 'android' || plateform === 'ios' || plateform === 'desktop') {
+    if (plateform === 'android' || plateform === 'desktop') {
       $.getJSON(jsonStructure, function(data) {
         jsonStructure = JSON.stringify(data);
         setLocalJson(jsonStructure, documentId).then((response) => {
@@ -110,7 +112,7 @@ function setLocalJson(jsonContent, documentId) {
 document.getElementById('saveButton').addEventListener('click', sendLocalJsonToNative);
 
 function sendLocalJsonToNative() {
-  console.log('Sending annotations to ==> ' + devicePlateform + ' <==Device');
+  console.log('Sending annotations to ==> ' + devicePlateform + ' <== Device');
   let bookmarks = globalStoreAdapter.getAllBookmarks(RENDER_OPTIONS.documentId);
   bookmarks.then((bookmarks) => {
     let annotations = globalStoreAdapter.getAllAnnotations(RENDER_OPTIONS.documentId);
@@ -145,7 +147,7 @@ function sendLocalJsonToNative() {
 }
 
 setTimeout(() => {
-  document.updateFromNative('example.pdf', '../example.pdf', '../test.json', 'android');
+  document.updateFromNative('example.pdf', '../example.pdf', jsonString, 'ios');
 }, 100);
 
 function getPdfId() {
@@ -420,6 +422,11 @@ function initBookMarks(document, window) {
       let a = document.createElement('a');
       a.classList += 'list-text';
       a.textContent = `${bookmark.text}`;
+      a.dataset.page = page;
+      a.onclick = function(e) {
+        debugger;
+        document.getElementById(`pageContainer${page}`).scrollIntoView(true);
+      };
       let button = document.createElement('button');
       button.className = 'btn';
       button.dataset.page = page;
