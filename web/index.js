@@ -170,7 +170,6 @@ function render() {
 
   loadingTask.promise.then((pdf) => {
     RENDER_OPTIONS.pdfDocument = pdf;
-
     let viewer = document.getElementById('viewer');
     viewer.innerHTML = '';
     NUM_PAGES = pdf.numPages;
@@ -178,7 +177,6 @@ function render() {
       let page = UI.createPage(i + 1);
       viewer.appendChild(page);
     }
-
     UI.renderPage(1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
       let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
       PAGE_HEIGHT = viewport.height;
@@ -501,6 +499,86 @@ function initBookMarks(document, window) {
     body.classList.toggle('bookmark-open');
   });
 }
+
+// Search Handler
+(function(document, window) {
+  // global variable for search state
+  let searchResults = [];
+  let searchString;
+  let inputHolder = document.querySelector('.table-input');
+  let currentIndex = 0;
+
+  function findByTextContent(needle, haystack, precise) {
+  // needle: String, the string to be found within the elements.
+  // haystack: String, a selector to be passed to document.querySelectorAll(),
+  //           NodeList, Array - to be iterated over within the function:
+  // precise: Boolean, true - searches for that precise string, surrounded by
+  //                          word-breaks,
+  //                   false - searches for the string occurring anywhere
+    let elems;
+    // no haystack we quit here, to avoid having to search
+    // the entire document:
+    if (!haystack) {
+      return false;
+    }
+    // if haystack is a string, we pass it to document.querySelectorAll(),
+    // and turn the results into an Array:
+    else if (typeof haystack === 'string') {
+      elems = [].slice.call(document.querySelectorAll(haystack), 0);
+    }
+    // if haystack has a length property, we convert it to an Array
+    // (if it's already an array, this is pointless, but not harmful):
+    else if (haystack.length) {
+      elems = [].slice.call(haystack, 0);
+    }
+
+    // work out whether we're looking at innerText (IE), or textContent
+    // (in most other browsers)
+    let textProp = 'textContent' in document ? 'textContent' : 'innerText';
+    // creating a regex depending on whether we want a precise match, or not:
+    let reg = precise === true ? new RegExp('\\b' + needle + '\\b') : new RegExp(needle);
+    // iterating over the elems array:
+    let found = elems.filter(function(el) {
+      // returning the elements in which the text is, or includes,
+      // the needle to be found:
+      return reg.test(el[textProp]);
+    });
+    return found.length ? found : false;
+  }
+
+  function findNextOccurance() {
+    if (inputHolder.value !== searchString) {
+      searchString = inputHolder.value;
+      currentIndex = 0;
+      searchResults = findByTextContent(searchString, 'span', false);
+    }
+    if (searchResults) {
+      if (currentIndex > 1) {
+        let prevele = searchResults[currentIndex - 1];
+        prevele.style.background = 'Transparent';
+      }
+      let nextResult = searchResults[currentIndex];
+
+      if (nextResult) {
+        nextResult.scrollIntoView(true);
+        nextResult.style.background = 'yellow';
+      }
+      else {
+        currentIndex = 0;
+        let nextResult = searchResults[currentIndex];
+        nextResult.scrollIntoView(true);
+      }
+      currentIndex += 1;
+    }
+  }
+
+  document.querySelector('.close-search').addEventListener('click', function(e) {
+    searchResults = [];
+    currentIndex = 0;
+  });
+  document.getElementById('searchNext').addEventListener('click', findNextOccurance);
+  // document.getElementById('prev').addEventListener('click', findPrevOccurance);
+})(document, window);
 
 // Scale/rotate
 // (function() {
