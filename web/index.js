@@ -3,8 +3,7 @@ import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
 
-let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
-
+let toolType;
 let documentId;
 let documentPath;
 let devicePlateform;
@@ -26,7 +25,10 @@ let NUM_PAGES = 0;
 let renderedPages = [];
 let okToRender = false;
 
-document.getElementById('content-wrapper').addEventListener('scroll', (e) => {
+document.getElementById('content-wrapper').addEventListener('scroll', scrollListner);
+document.getElementById('content-wrapper').addEventListener('touchmove', scrollListner);
+
+function scrollListner(e) {
   let visiblePageNum = Math.round(e.target.scrollTop / PAGE_HEIGHT) + 1;
   currentPage = visiblePageNum;
   let visiblePage = document.querySelector(`.page[data-page-number="${visiblePageNum}"][data-loaded="false"]`);
@@ -44,7 +46,7 @@ document.getElementById('content-wrapper').addEventListener('scroll', (e) => {
       UI.renderPage(visiblePageNum, RENDER_OPTIONS);
     });
   }
-});
+}
 
 // code for communication with mobile and desktop device for loading pdf files in view
 document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform) {
@@ -146,10 +148,6 @@ function sendLocalJsonToNative() {
   });
 }
 
-setTimeout(() => {
-  document.updateFromNative('example.pdf', '../example.pdf', jsonString, 'ios');
-}, 100);
-
 function getPdfId() {
   if (!RENDER_OPTIONS.documentId) {
     console.log(`Polling documentId variable and documentId value is ${documentId}`);
@@ -194,10 +192,17 @@ function render() {
     let first = touches[0];
     let type = '';
     switch (event.type) {
-      case 'touchstart': type = 'mousedown'; break;
-      case 'touchmove': type = 'mousemove'; break;
-      case 'touchend': type = 'mouseup'; break;
-      default: return;
+      case 'touchstart':
+        type = 'mousedown';
+        break;
+      case 'touchmove':
+        type = 'mousemove';
+        break;
+      case 'touchend':
+        type = 'mouseup';
+        break;
+      default:
+        return;
     }
 
     let simulatedEvent = document.createEvent('MouseEvent');
@@ -208,7 +213,9 @@ function render() {
       false, false, false, 0/* left */, null);
     first.target.dispatchEvent(simulatedEvent);
     if (first.target.className.baseVal === 'annotationLayer') {
-      event.preventDefault();
+      if (toolType === 'draw' || toolType === 'eraser') {
+        event.preventDefault();
+      }
     }
   }
   // add  event listners for the
@@ -339,7 +346,7 @@ function initPenWrapper() {
       localStorage.setItem(`${RENDER_OPTIONS.documentId}/tooltype`, type);
     }
     tooltype = type;
-
+    toolType = type;
     switch (type) {
       case 'cursor':
         UI.enableEdit();
@@ -424,7 +431,6 @@ function initBookMarks(document, window) {
       a.textContent = `${bookmark.text}`;
       a.dataset.page = page;
       a.onclick = function(e) {
-        debugger;
         document.getElementById(`pageContainer${page}`).scrollIntoView(true);
       };
       let button = document.createElement('button');

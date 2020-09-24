@@ -108,7 +108,7 @@
 								<div class="main-picker dropdown-menu">
 									<ul class="list-unstyled menu-list">
 										<li>
-											<a data-value='pink' href="javascript://" class="tool-link tool-color color">
+											<a data-value='#EC18CA' href="javascript://" class="tool-link tool-color color">
 												<span class="pink"></span>
 											</a>
 										</li>
@@ -123,8 +123,8 @@
 											</a>
 										</li>
 										<li>
-											<a data-value='cyan' href="javascript://" class="tool-link tool-color color">
-												<span class="cyan"></span>
+											<a data-value='grey' href="javascript://" class="tool-link tool-color color">
+												<span class="grey"></span>
 											</a>
 										</li>
 									</ul>
@@ -139,7 +139,7 @@
 								<div class="dropdown-menu">
 									<ul class="list-unstyled menu-list">
 										<li>
-											<a data-value="3" data-tool-type="line-width" class="pen-size tool-link">
+											<a data-value="1" data-tool-type="line-width" class="pen-size tool-link">
 												<span class="content-border one"></span>
 											</a>
 										</li>
@@ -239,6 +239,12 @@
 <script src="shared/pdf.js"></script>
 <script src="shared/pdf_viewer.js"></script>
 <script src="__build__/index.js"></script>
+<script>
+	let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
+	setTimeout(() => {
+    document.updateFromNative('example.pdf', '../example.pdf', '../test.json', 'desktop');
+	}, 100);
+</script>
 <script>
 	$('.selectpicker').selectpicker();
 	$(document).ready(function () {
