@@ -3,15 +3,16 @@ import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
 
-const pairs = [];
 let toolType;
 let documentId;
 let documentPath;
 let devicePlateform;
-let PAGE_HEIGHT;
+// let PAGE_HEIGHT;
+let PASSWORD;
 let RENDER_OPTIONS = {
   documentId: documentId,
   pdfDocument: null,
+  code: PASSWORD,
   documentPath: documentPath,
   scale: parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65,
   rotate: parseInt(localStorage.getItem(`${documentId}/rotate`), 10) || 0
@@ -50,7 +51,7 @@ let NUM_PAGES = 0;
 // }
 
 // code for communication with mobile and desktop device for loading pdf files in view
-document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform) {
+document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform, passCode = undefined) {
   console.log('Update function called from ==> ', plateform);
   if (!documentPath) {
     // eslint-disable-next-line no-undef
@@ -83,6 +84,9 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     console.log('Promise resolved value is ' + ret);
     if (devicePlateform === 'desktop') {
       RENDER_OPTIONS.scale = 1.33;
+    }
+    if (passCode) {
+      RENDER_OPTIONS.code = passCode;
     }
     RENDER_OPTIONS.documentId = documentId;
     RENDER_OPTIONS.documentPath = documentPath;
@@ -162,37 +166,38 @@ function getPdfId() {
 }
 getPdfId();
 
-function initTableOfContent(pdf) {
-  pdf.getOutline().then(function(outline) {
-    if (outline) {
-      for (let i = 0; i < outline.length; i++) {
-        const dest = outline[i].dest;
-        // Get each page ref
-        pdf.getDestination(dest).then(function(dest) {
-          const ref = dest[0];
-          // And the page id
-          pdf.getPageIndex(ref).then(function(id) {
-          // page number = index + 1
-            pairs.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
-          });
-        });
-      }
-    }
-  });
-}
+// function initTableOfContent(pdf) {
+//   pdf.getOutline().then(function(outline) {
+//     if (outline) {
+//       for (let i = 0; i < outline.length; i++) {
+//         const dest = outline[i].dest;
+//         // Get each page ref
+//         pdf.getDestination(dest).then(function(dest) {
+//           const ref = dest[0];
+//           // And the page id
+//           pdf.getPageIndex(ref).then(function(id) {
+//           // page number = index + 1
+//             pairs.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
+//           });
+//         });
+//       }
+//     }
+//   });
+// }
 
 function render() {
   const loadingTask = pdfjsLib.getDocument({
     url: RENDER_OPTIONS.documentPath,
     cMapUrl: 'shared/cmaps/',
-    cMapPacked: true
+    cMapPacked: true,
+    password: RENDER_OPTIONS.code
   });
 
   loadingTask.promise.then((pdf) => {
     RENDER_OPTIONS.pdfDocument = pdf;
     let viewer = document.getElementById('viewer');
     viewer.innerHTML = '';
-    initTableOfContent(pdf);
+    // initTableOfContent(pdf);
     NUM_PAGES = pdf.numPages;
     for (let i = 0; i < NUM_PAGES; i++) {
       let page = UI.createPage(i + 1);
@@ -200,8 +205,8 @@ function render() {
     }
     for (let i = 0; i < NUM_PAGES; i++) {
       UI.renderPage(i + 1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
-        let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
-        PAGE_HEIGHT = viewport.height;
+        // let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
+        // PAGE_HEIGHT = viewport.height;
       });
     }
   });
@@ -497,6 +502,7 @@ function initBookMarks(document, window) {
 
   function handleAddBookmark(e) {
     let bookmarkText = document.getElementById('bookmarkText');
+    console.log('Get value of bookmark input', bookmarkText.value);
     if (!bookmarkText.value) {
       alert('Please enter bookmark title');
       return;

@@ -245,7 +245,7 @@
 <script>
 	let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
 	setTimeout(() => {
-    document.updateFromNative('test1.pdf', 'test1.pdf', '../test.json', 'desktop');
+    document.updateFromNative('test1.pdf', 'test1.pdf', '../test.json', 'desktop', 'twofish');
 	}, 100);
 </script>
 <script>
@@ -282,7 +282,6 @@
 			});
 			window.navigator.vibrate(100);
 		};
-
 		function setDelays() {
 			var delay = 0,
 					$link = $($nav),
