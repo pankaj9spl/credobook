@@ -3,6 +3,7 @@ import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
 
+const pairs = [];
 let toolType;
 let documentId;
 let documentPath;
@@ -22,31 +23,31 @@ pdfjsLib.workerSrc = './shared/pdf.worker.js';
 
 // Render stuff
 let NUM_PAGES = 0;
-let renderedPages = [];
-let okToRender = false;
+// let renderedPages = [];
+// let okToRender = false;
 
-document.getElementById('content-wrapper').addEventListener('scroll', scrollListner);
-document.getElementById('content-wrapper').addEventListener('touchmove', scrollListner);
-
-function scrollListner(e) {
-  let visiblePageNum = Math.round(e.target.scrollTop / PAGE_HEIGHT) + 1;
-  currentPage = visiblePageNum;
-  let visiblePage = document.querySelector(`.page[data-page-number="${visiblePageNum}"][data-loaded="false"]`);
-
-  if (renderedPages.indexOf(visiblePageNum) === -1) {
-    okToRender = true;
-    renderedPages.push(visiblePageNum);
-  }
-  else {
-    okToRender = false;
-  }
-
-  if (visiblePage && okToRender) {
-    setTimeout(() => {
-      UI.renderPage(visiblePageNum, RENDER_OPTIONS);
-    });
-  }
-}
+// document.getElementById('content-wrapper').addEventListener('scroll', scrollListner);
+// document.getElementById('content-wrapper').addEventListener('touchmove', scrollListner);
+//
+// function scrollListner(e) {
+//   let visiblePageNum = Math.round(e.target.scrollTop / PAGE_HEIGHT) + 1;
+//   currentPage = visiblePageNum;
+//   let visiblePage = document.querySelector(`.page[data-page-number="${visiblePageNum}"][data-loaded="false"]`);
+//
+//   if (renderedPages.indexOf(visiblePageNum) === -1) {
+//     okToRender = true;
+//     renderedPages.push(visiblePageNum);
+//   }
+//   else {
+//     okToRender = false;
+//   }
+//
+//   if (visiblePage && okToRender) {
+//     setTimeout(() => {
+//       UI.renderPage(visiblePageNum, RENDER_OPTIONS);
+//     });
+//   }
+// }
 
 // code for communication with mobile and desktop device for loading pdf files in view
 document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform) {
@@ -161,6 +162,25 @@ function getPdfId() {
 }
 getPdfId();
 
+function initTableOfContent(pdf) {
+  pdf.getOutline().then(function(outline) {
+    if (outline) {
+      for (let i = 0; i < outline.length; i++) {
+        const dest = outline[i].dest;
+        // Get each page ref
+        pdf.getDestination(dest).then(function(dest) {
+          const ref = dest[0];
+          // And the page id
+          pdf.getPageIndex(ref).then(function(id) {
+          // page number = index + 1
+            pairs.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
+          });
+        });
+      }
+    }
+  });
+}
+
 function render() {
   const loadingTask = pdfjsLib.getDocument({
     url: RENDER_OPTIONS.documentPath,
@@ -172,15 +192,18 @@ function render() {
     RENDER_OPTIONS.pdfDocument = pdf;
     let viewer = document.getElementById('viewer');
     viewer.innerHTML = '';
+    initTableOfContent(pdf);
     NUM_PAGES = pdf.numPages;
     for (let i = 0; i < NUM_PAGES; i++) {
       let page = UI.createPage(i + 1);
       viewer.appendChild(page);
     }
-    UI.renderPage(1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
-      let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
-      PAGE_HEIGHT = viewport.height;
-    });
+    for (let i = 0; i < NUM_PAGES; i++) {
+      UI.renderPage(i + 1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
+        let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
+        PAGE_HEIGHT = viewport.height;
+      });
+    }
   });
 }
 
@@ -545,8 +568,12 @@ function initBookMarks(document, window) {
     });
     return found.length ? found : false;
   }
-
+  function updateSearchCounterDisplay() {
+    document.getElementById('currentItemLabel').innerText = currentIndex;
+    document.getElementById('allItemLabel').innerText = searchResults.length;
+  }
   function findNextOccurance() {
+    updateSearchCounterDisplay();
     if (inputHolder.value !== searchString) {
       searchString = inputHolder.value;
       currentIndex = 0;
@@ -571,60 +598,40 @@ function initBookMarks(document, window) {
       currentIndex += 1;
     }
   }
+  function findPrevOccurance() {
+    updateSearchCounterDisplay();
+    if (inputHolder.value !== searchString) {
+      searchString = inputHolder.value;
+      searchResults = findByTextContent(searchString, 'span', false);
+      currentIndex = searchResults.length - 1;
+    }
+    if (searchResults) {
+      let prevele = searchResults[currentIndex];
+      prevele.style.background = 'Transparent';
+      let nextResult = searchResults[currentIndex - 1];
+
+      if (nextResult) {
+        nextResult.scrollIntoView(true);
+        nextResult.style.background = 'yellow';
+      }
+      else {
+        currentIndex = 0;
+        let nextResult = searchResults[currentIndex];
+        nextResult.scrollIntoView(true);
+      }
+      if (currentIndex === 0) {
+        currentIndex = searchResults.length - 1;
+      }
+      else {
+        currentIndex -= 1;
+      }
+    }
+  }
 
   document.querySelector('.close-search').addEventListener('click', function(e) {
     searchResults = [];
     currentIndex = 0;
   });
   document.getElementById('searchNext').addEventListener('click', findNextOccurance);
-  // document.getElementById('prev').addEventListener('click', findPrevOccurance);
+  document.getElementById('searchPrev').addEventListener('click', findPrevOccurance);
 })(document, window);
-
-// Scale/rotate
-// (function() {
-//   function setScaleRotate(scale, rotate) {
-//     scale = parseFloat(scale, 1);
-//     rotate = parseInt(rotate, 10);
-//
-//     if (RENDER_OPTIONS.scale !== scale || RENDER_OPTIONS.rotate !== rotate) {
-//       RENDER_OPTIONS.scale = scale;
-//       RENDER_OPTIONS.rotate = rotate;
-//
-//       localStorage.setItem(`${RENDER_OPTIONS.documentId}/scale`, RENDER_OPTIONS.scale);
-//       localStorage.setItem(`${RENDER_OPTIONS.documentId}/rotate`, RENDER_OPTIONS.rotate % 360);
-//
-//       render();
-//     }
-//   }
-//
-//   function handleScaleChange(e) {
-//     setScaleRotate(e.target.value, RENDER_OPTIONS.rotate);
-//   }
-//
-//   function handleRotateCWClick() {
-//     setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate + 90);
-//   }
-//
-//   function handleRotateCCWClick() {
-//     setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate - 90);
-//   }
-//
-//   document.querySelector('.toolbar select.scale').value = RENDER_OPTIONS.scale;
-//   document.querySelector('.toolbar select.scale').addEventListener('change', handleScaleChange);
-//   document.querySelector('.toolbar .rotate-ccw').addEventListener('click', handleRotateCCWClick);
-//   document.querySelector('.toolbar .rotate-cw').addEventListener('click', handleRotateCWClick);
-// })();
-
-// Clear toolbar button
-// (function() {
-//   function handleClearClick() {
-//     if (confirm('Are you sure you want to clear annotations?')) {
-//       for (let i = 0; i < NUM_PAGES; i++) {
-//         document.querySelector(`div#pageContainer${i + 1} svg.annotationLayer`).innerHTML = '';
-//       }
-//
-//       localStorage.removeItem(`${RENDER_OPTIONS.documentId}/annotations`);
-//     }
-//   }
-//   document.querySelector('a.clear').addEventListener('click', handleClearClick);
-// })();

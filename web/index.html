@@ -33,6 +33,9 @@
 				</button>
 				<div class="search-content form-group">
 					<input class="table-input form-control" type="text" placeholder="Search here...">
+					<div>
+						<label id="currentItemLabel"></label> / <label id="allItemLabel"></label>
+					</div>
 					<div class="next-prev-search">
 						<button id="searchPrev" class="btn prevbtn" type="button"><img src="resources/img/icons/down-angle.svg" alt=""/></button>
 						<button id="searchNext" class="btn nextbtn" type="button"><img src="resources/img/icons/down-angle.svg" alt=""/></button>
@@ -242,7 +245,7 @@
 <script>
 	let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
 	setTimeout(() => {
-    document.updateFromNative('example.pdf', '../example.pdf', '../test.json', 'desktop');
+    document.updateFromNative('test1.pdf', 'test1.pdf', '../test.json', 'desktop');
 	}, 100);
 </script>
 <script>
