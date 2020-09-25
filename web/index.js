@@ -423,6 +423,16 @@ function initBookMarks(document, window) {
   let bookMarkContainer = document.getElementById('bookMarkContainer');
   bookMarkContainer.innerHTML = '';
 
+  function isInViewport(element) {
+    const rect = element.getBoundingClientRect();
+    return (
+      rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+  }
+
   function attachBookMarkToView(e) {
     e.innerHTML = '';
     let bookmarks = getBookMarks();
@@ -507,6 +517,23 @@ function initBookMarks(document, window) {
       alert('Please enter bookmark title');
       return;
     }
+    let allSvgs = document.querySelectorAll('.annotationLayer');
+    for (let i = 0; i < allSvgs.length; i++) {
+      if (isElementInViewport(allSvgs[i])) {
+        currentPage = parseInt(allSvgs[i].getAttribute('data-pdf-annotate-page'));
+        console.log('current page is ', currentPage);
+        break;
+      }
+    }
+    function isElementInViewport(el) {
+      let rect = el.getBoundingClientRect();
+
+      return rect.bottom > 0 &&
+        rect.right > 0 &&
+        rect.left < (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */ &&
+        rect.top < (window.innerHeight || document.documentElement.clientHeight);
+    }
+
     let res = addBookMark(bookmarkText.value, currentPage);
     if (res) {
       let modal = document.getElementById('starPopuo');
