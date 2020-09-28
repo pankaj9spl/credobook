@@ -24,7 +24,7 @@ let globalStoreAdapter = PDFJSAnnotate.getStoreAdapter();
 pdfjsLib.workerSrc = './shared/pdf.worker.js';
 
 // code for communication with mobile and desktop device for loading pdf files in view
-document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform, passCode = undefined) {
+document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform, passCode) {
   console.log('Update function called from ==> ', plateform);
   if (!documentPath) {
     // eslint-disable-next-line no-undef
@@ -495,6 +495,19 @@ function initBookMarks(document, window) {
       bookmarkText.value = '';
       attachBookMarkToView(bookMarkContainer);
     }
+    checkAndDisableDraw(false);
+  }
+
+  function checkAndDisableDraw(flag) {
+    let tooltype = localStorage.getItem(`${RENDER_OPTIONS.documentId}/tooltype`) || 'cursor';
+    if (tooltype === 'draw') {
+      if (flag) {
+        UI.disablePen();
+      }
+      else {
+        UI.enablePen();
+      }
+    }
   }
   document.getElementById('bookmark-button').addEventListener('click', handleAddBookmark);
   document.querySelector('.bookmark-toggle').addEventListener('click', function() {
@@ -503,6 +516,12 @@ function initBookMarks(document, window) {
       attachBookMarkToView(bookMarkContainer);
     }
     body.classList.toggle('bookmark-open');
+  });
+  document.querySelector('button[data-target="#starPopuo"]').addEventListener('click', function() {
+    checkAndDisableDraw(true);
+  });
+  document.querySelector('button[data-dismiss="modal"]').addEventListener('click', function() {
+    checkAndDisableDraw(false);
   });
 }
 
@@ -618,33 +637,67 @@ function initBookMarks(document, window) {
   document.getElementById('searchPrev').addEventListener('click', findPrevOccurance);
 })(document, window);
 
+// scale rotate functions
+// (function() {
+//   function setScaleRotate(scale, rotate) {
+//     scale = parseFloat(scale, 10);
+//     rotate = parseInt(rotate, 10);
+//
+//     if (RENDER_OPTIONS.scale !== scale || RENDER_OPTIONS.rotate !== rotate) {
+//       RENDER_OPTIONS.scale = scale;
+//       RENDER_OPTIONS.rotate = rotate;
+//
+//       localStorage.setItem(`${RENDER_OPTIONS.documentId}/scale`, RENDER_OPTIONS.scale);
+//       localStorage.setItem(`${RENDER_OPTIONS.documentId}/rotate`, RENDER_OPTIONS.rotate % 360);
+//       render();
+//     }
+//   }
+//
+//   function handleScaleChange(e) {
+//     setScaleRotate(e.target.value, RENDER_OPTIONS.rotate);
+//   }
+//
+//   function handleRotateCWClick() {
+//     setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate + 90);
+//   }
+//
+//   function handleRotateCCWClick() {
+//     setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate - 90);
+//   }
+//
+//   document.querySelector('.toolbar select.scale').value = RENDER_OPTIONS.scale;
+//   document.querySelector('.toolbar select.scale').addEventListener('change', handleScaleChange);
+//   document.querySelector('.toolbar .rotate-ccw').addEventListener('click', handleRotateCCWClick);
+//   document.querySelector('.toolbar .rotate-cw').addEventListener('click', handleRotateCWClick);
+// })();
+
 // handler for the table of content
-function initPdfContentTable(pdf) {
-  let tableOfContent = pdf.getOutline();
-  let outLine = [];
-  tableOfContent.then((outline) => {
-    if (outline) {
-      console.log('Pdf has table of content available');
-      for (let i = 0; i < outline.length; i++) {
-        const dest = outline[i].dest;
-        // Get each page ref
-        if (typeof dest === 'object') {
-          pdf.getPageIndex(dest).then(function(id) {
-            // page number = index + 1
-            outLine.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
-          });
-        }
-        else {
-          pdf.getDestination(dest).then(function(dest) {
-            const ref = dest[0];
-            // And the page id
-            pdf.getPageIndex(ref).then(function(id) {
-            // page number = index + 1
-              outLine.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
-            });
-          });
-        }
-      }
-    }
-  });
-}
+// function initPdfContentTable(pdf) {
+//   let tableOfContent = pdf.getOutline();
+//   let outLine = [];
+//   tableOfContent.then((outline) => {
+//     if (outline) {
+//       console.log('Pdf has table of content available');
+//       for (let i = 0; i < outline.length; i++) {
+//         const dest = outline[i].dest;
+//         // Get each page ref
+//         if (typeof dest !== 'object') {
+//           pdf.getPageIndex(dest).then(function(id) {
+//             // page number = index + 1
+//             outLine.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
+//           });
+//         }
+//         else {
+//           pdf.getDestination(dest[1].name).then(function(dest) {
+//             const ref = dest[0];
+//             // And the page id
+//             pdf.getPageIndex(ref).then(function(id) {
+//             // page number = index + 1
+//               outLine.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
+//             });
+//           });
+//         }
+//       }
+//     }
+//   });
+// }

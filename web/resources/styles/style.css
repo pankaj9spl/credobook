@@ -13164,6 +13164,9 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
   z-index: 3;
 }
 
+.searchShow + .h-100 #content-wrapper{
+    top: calc(40px + 1rem);
+}
 .search-content .next-prev-search {
   position: absolute;
   right: calc(35px + 15px);

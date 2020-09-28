@@ -253,10 +253,10 @@
 	// $('.selectpicker').selectpicker();
 	$(document).ready(function () {
 		$(".content-search").click(function () {
-			$(".search-content").slideToggle();
+			$(".search-content").slideDown().addClass('searchShow');
 		});
 		$(".close-search").click(function () {
-			$(".search-content").slideUp();
+			$(".search-content").slideUp().removeClass('searchShow');
 		});
 
 		$nav = $('.more-buttons');
