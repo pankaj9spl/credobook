@@ -8,6 +8,7 @@ let documentId;
 let documentPath;
 let devicePlateform;
 // let PAGE_HEIGHT;
+let NUM_PAGES = 0;
 let PASSWORD;
 let RENDER_OPTIONS = {
   documentId: documentId,
@@ -21,34 +22,6 @@ let currentPage = 1;
 PDFJSAnnotate.setStoreAdapter(new PDFJSAnnotate.LocalStoreAdapter());
 let globalStoreAdapter = PDFJSAnnotate.getStoreAdapter();
 pdfjsLib.workerSrc = './shared/pdf.worker.js';
-
-// Render stuff
-let NUM_PAGES = 0;
-// let renderedPages = [];
-// let okToRender = false;
-
-// document.getElementById('content-wrapper').addEventListener('scroll', scrollListner);
-// document.getElementById('content-wrapper').addEventListener('touchmove', scrollListner);
-//
-// function scrollListner(e) {
-//   let visiblePageNum = Math.round(e.target.scrollTop / PAGE_HEIGHT) + 1;
-//   currentPage = visiblePageNum;
-//   let visiblePage = document.querySelector(`.page[data-page-number="${visiblePageNum}"][data-loaded="false"]`);
-//
-//   if (renderedPages.indexOf(visiblePageNum) === -1) {
-//     okToRender = true;
-//     renderedPages.push(visiblePageNum);
-//   }
-//   else {
-//     okToRender = false;
-//   }
-//
-//   if (visiblePage && okToRender) {
-//     setTimeout(() => {
-//       UI.renderPage(visiblePageNum, RENDER_OPTIONS);
-//     });
-//   }
-// }
 
 // code for communication with mobile and desktop device for loading pdf files in view
 document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform, passCode = undefined) {
@@ -83,7 +56,7 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
   isStorageSet.then(function(ret) {
     console.log('Promise resolved value is ' + ret);
     if (devicePlateform === 'desktop') {
-      RENDER_OPTIONS.scale = 1.33;
+      RENDER_OPTIONS.scale = 2.00;
     }
     if (passCode) {
       RENDER_OPTIONS.code = passCode;
@@ -166,25 +139,6 @@ function getPdfId() {
 }
 getPdfId();
 
-// function initTableOfContent(pdf) {
-//   pdf.getOutline().then(function(outline) {
-//     if (outline) {
-//       for (let i = 0; i < outline.length; i++) {
-//         const dest = outline[i].dest;
-//         // Get each page ref
-//         pdf.getDestination(dest).then(function(dest) {
-//           const ref = dest[0];
-//           // And the page id
-//           pdf.getPageIndex(ref).then(function(id) {
-//           // page number = index + 1
-//             pairs.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
-//           });
-//         });
-//       }
-//     }
-//   });
-// }
-
 function render() {
   const loadingTask = pdfjsLib.getDocument({
     url: RENDER_OPTIONS.documentPath,
@@ -197,13 +151,13 @@ function render() {
     RENDER_OPTIONS.pdfDocument = pdf;
     let viewer = document.getElementById('viewer');
     viewer.innerHTML = '';
-    // initTableOfContent(pdf);
+    // initPdfContentTable(pdf);
     NUM_PAGES = pdf.numPages;
-    for (let i = 0; i < NUM_PAGES; i++) {
+    for (let i = 0; i < 10; i++) {
       let page = UI.createPage(i + 1);
       viewer.appendChild(page);
     }
-    for (let i = 0; i < NUM_PAGES; i++) {
+    for (let i = 0; i < 10; i++) {
       UI.renderPage(i + 1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
         // let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
         // PAGE_HEIGHT = viewport.height;
@@ -329,6 +283,12 @@ function initPenWrapper() {
     setActiveToolbarItem(tooltype, document.querySelector(`.toolbar button[data-tool-type=${tooltype}]`));
   }
 
+  // activate cursor tool on close button
+  function activateCursor() {
+    let cursorButton = document.querySelector('button[data-tool-type="cursor"]');
+    setActiveToolbarItem('cursor', cursorButton);
+  }
+  document.querySelector('.close-button').addEventListener('click', activateCursor);
   function setActiveToolbarItem(type, button) {
     let active = document.querySelector('.toolbar button.active');
     if (active) {
@@ -422,16 +382,6 @@ function initPenWrapper() {
 function initBookMarks(document, window) {
   let bookMarkContainer = document.getElementById('bookMarkContainer');
   bookMarkContainer.innerHTML = '';
-
-  function isInViewport(element) {
-    const rect = element.getBoundingClientRect();
-    return (
-      rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    );
-  }
 
   function attachBookMarkToView(e) {
     e.innerHTML = '';
@@ -660,7 +610,6 @@ function initBookMarks(document, window) {
       }
     }
   }
-
   document.querySelector('.close-search').addEventListener('click', function(e) {
     searchResults = [];
     currentIndex = 0;
@@ -668,3 +617,34 @@ function initBookMarks(document, window) {
   document.getElementById('searchNext').addEventListener('click', findNextOccurance);
   document.getElementById('searchPrev').addEventListener('click', findPrevOccurance);
 })(document, window);
+
+// handler for the table of content
+function initPdfContentTable(pdf) {
+  let tableOfContent = pdf.getOutline();
+  let outLine = [];
+  tableOfContent.then((outline) => {
+    if (outline) {
+      console.log('Pdf has table of content available');
+      for (let i = 0; i < outline.length; i++) {
+        const dest = outline[i].dest;
+        // Get each page ref
+        if (typeof dest === 'object') {
+          pdf.getPageIndex(dest).then(function(id) {
+            // page number = index + 1
+            outLine.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
+          });
+        }
+        else {
+          pdf.getDestination(dest).then(function(dest) {
+            const ref = dest[0];
+            // And the page id
+            pdf.getPageIndex(ref).then(function(id) {
+            // page number = index + 1
+              outLine.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
+            });
+          });
+        }
+      }
+    }
+  });
+}

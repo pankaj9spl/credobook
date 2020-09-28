@@ -33,7 +33,7 @@
 				</button>
 				<div class="search-content form-group">
 					<input class="table-input form-control" type="text" placeholder="Search here...">
-					<div>
+					<div class="find-pdf-count">
 						<label id="currentItemLabel"></label> / <label id="allItemLabel"></label>
 					</div>
 					<div class="next-prev-search">
@@ -95,13 +95,20 @@
 					</button>
 				</li>
 				<li class="">
-					<button id="longPress" class="btn btn-small" data-tool-type="draw">
+					<button id="longPress" class="btn btn-small">
             <span class="arrow-button arrow-button-static ">
                 <img src="resources/img/icons/pencil.svg" alt=""/>
             </span>
 					</button>
 					<div class="more-buttons">
 						<ul class="list-unstyled">
+							<li>
+									<button class="btn btn-small" data-tool-type="draw">
+				            <span class="arrow-button arrow-button-static ">
+				                <img src="resources/img/icons/pencil.svg" alt=""/>
+				            </span>
+									</button>
+							</li>
 							<li class="dropup more-effect">
 								<button class="btn btn-small" data-toggle="dropdown">
                   <span class="arrow-button arrow-button-static">
@@ -164,12 +171,6 @@
 									</ul>
 								</div>
 							</li>
-								<li>
-									<button class="btn btn-small" data-toggle="modal" data-target="#starPopuo">
-				            <span class="arrow-button arrow-button-static">
-				              <img src="resources/img/icons/check-mark.svg" alt=""/></span>
-									</button>
-								</li>
 							<li>
 								<button class="btn btn-small" data-tool-type="eraser">
                   <span class="arrow-button arrow-button-static">
@@ -245,11 +246,11 @@
 <script>
 	let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
 	setTimeout(() => {
-    document.updateFromNative('test1.pdf', 'test1.pdf', '../test.json', 'desktop', 'twofish');
+    document.updateFromNative('test3.pdf', 'test3.pdf', '../test.json', 'desktop', 'twofish');
 	}, 100);
 </script>
 <script>
-	$('.selectpicker').selectpicker();
+	// $('.selectpicker').selectpicker();
 	$(document).ready(function () {
 		$(".content-search").click(function () {
 			$(".search-content").slideToggle();
@@ -257,54 +258,9 @@
 		$(".close-search").click(function () {
 			$(".search-content").slideUp();
 		});
-	});
-	$(function () {
-		var $win = $('#longPress'),
-				$nav = $('.more-buttons'),
-				timeout = 300,
-				pos = {},
-				size = {};
 
-		setDelays();
-
-		function showMenu(e) {
-			pos.X = (e.type === 'touchstart') ? e.originalEvent.touches[0].pageX : e.pageX;
-			pos.Y = (e.type === 'touchstart') ? e.originalEvent.touches[0].pageY : e.pageY;
-
-			pos.X = (pos.X < 30) ? 30 : pos.X;
-			pos.X = (pos.X > (size.w - $nav.width())) ? (size.w - $nav.width()) : pos.X;
-			pos.Y = (pos.Y < 110) ? 110 : pos.Y;
-			pos.Y = (pos.Y > (size.h - 150)) ? (size.h - 150) : pos.Y;
-
-			$nav.addClass('show').css({
-				left: pos.X - 25,
-				top: pos.Y - 10
-			});
-			window.navigator.vibrate(100);
-		};
-		function setDelays() {
-			var delay = 0,
-					$link = $($nav),
-					i = 0;
-
-			while (i < $link.length) {
-				$link.eq(i).css('transition-delay', delay + 'ms');
-				delay = delay + 60;
-				i++;
-			}
-		};
-
-		$win.on('mousedown touchstart', function (e) {
-			clearTimeout(this.downTimer);
-			this.downTimer = setTimeout(function () {
-				showMenu(e);
-			}, timeout);
-		}).on('mouseup touchend', function (e) {
-			clearTimeout(this.downTimer);
-		}).resize(function () {
-			size.w = $win.width();
-			size.h = $win.height();
-		}).resize();
+		$nav = $('.more-buttons');
+		$win = $('#longPress');
 
 		$win.click(function (e) {
 			$nav.addClass('show');
@@ -313,7 +269,6 @@
 		$('.close-button').click(function (e) {
 			$nav.removeClass('show').removeAttr('style');
 		});
-
 	});
 </script>
 </body>

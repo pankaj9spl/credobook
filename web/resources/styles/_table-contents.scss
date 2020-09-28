@@ -197,6 +197,9 @@ $header-space: 10px;
   @extend .d-flex;
   @extend .justify-content-end;
   text-align: right;
+  @media (max-width: 355px){
+    width: 240px;
+  }
   li {
     display: inline-block;
     margin: 6px 3px;
@@ -363,7 +366,17 @@ $header-space: 10px;
     color: $secondary-color;
     height: calc(#{$h-input-btn-small} + 5px);
     font-size: 16px;
-    padding-right: calc(#{$h-input-btn-small} + 90px) !important;
+    padding-right: calc(#{$h-input-btn-small} + 90px + 140px) !important;
+    @include border-radius($input-radius);
+  }
+  .find-pdf-count{
+    position: absolute;
+    right: calc(#{$h-input-btn-small} + 57px + 25px);
+    top: 50%;
+    transform: translateY(-50%);
+    label{
+      margin-bottom: 0;
+    }
   }
 }
 
@@ -450,11 +463,14 @@ $header-space: 10px;
   .close-button{
     position: absolute;
     top: 100%;
-    right: 2px;
+    right: 3px;
     margin-top: 6px;
-    // @include media-breakpoint-down(md){
-    //   right: -3px;
-    // }
+    @media (max-width: 355px){
+      position: fixed;
+      top: auto;
+      right: 18px;
+      bottom: 21px;
+    }
   }
 }
 @include media-breakpoint-down(md){
