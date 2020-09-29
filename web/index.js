@@ -166,16 +166,17 @@ function render() {
     viewer.innerHTML = '';
     // initPdfContentTable(pdf);
     NUM_PAGES = pdf.numPages;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < NUM_PAGES; i++) {
       let page = UI.createPage(i + 1);
       viewer.appendChild(page);
     }
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < NUM_PAGES; i++) {
       UI.renderPage(i + 1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
         // let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
         // PAGE_HEIGHT = viewport.height;
       });
     }
+    initPageNumberHandler()
   });
 }
 
@@ -658,7 +659,7 @@ function initBookMarks(document, window) {
     search.forEach((el) => {
       let spanToReplace = el.querySelector('.search-highlight');
       if (spanToReplace) {
-        el.innerHTML = el.innerText
+        el.innerHTML = el.innerText;
       }
     });
   }
@@ -706,6 +707,38 @@ function initScaleRotate() {
   }
   document.getElementById('zoomOut').addEventListener('click', handleScaleChange);
   document.getElementById('zoomIn').addEventListener('click', handleScaleChange);
+}
+
+// handler for page number
+function initPageNumberHandler() {
+
+  let allSvgs;
+  function isElementInViewport(el) {
+    let rect = el.getBoundingClientRect();
+
+    return rect.bottom > 0 &&
+        rect.right > 0 &&
+        rect.left < (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */ &&
+        rect.top < (window.innerHeight || document.documentElement.clientHeight);
+  }
+  function handlePageNumber() {
+    if (!allSvgs) {
+      allSvgs = document.querySelectorAll('.annotationLayer');
+    }
+    for (let i = 0; i < allSvgs.length; i++) {
+      if (isElementInViewport(allSvgs[i])) {
+        currentPage = parseInt(allSvgs[i].getAttribute('data-pdf-annotate-page'));
+        break;
+      }
+    }
+    setPageNumber();
+  }
+  function setPageNumber() {
+    document.getElementById('currentPage').innerText = currentPage || 1;
+    document.getElementById('totalPages').innerText = NUM_PAGES;
+  }
+  setTimeout(setPageNumber, 200);
+  document.getElementById('content-wrapper').addEventListener('scroll', handlePageNumber);
 }
 
 // handler for the table of content
