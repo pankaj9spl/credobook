@@ -45,6 +45,7 @@ function getSelectionRects() {
  */
 function handleDocumentMousedown(e) {
   let svg;
+  debugger;
   if (_type !== 'area' || !(svg = findSVGAtPoint(e.clientX, e.clientY))) {
     return;
   }

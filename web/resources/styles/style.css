@@ -486,6 +486,16 @@ mark,
   height: auto;
 }
 
+#zoomIn, #zoomOut {
+  padding: 5px;
+  margin: 2px;
+  border: 1px solid grey;
+  border-radius: 58px;
+  min-width: 33px;
+  display: inline-block;
+  text-align: center;
+}
+
 .figure {
   display: inline-block;
 }

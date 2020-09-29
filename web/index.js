@@ -2,20 +2,21 @@ import PDFJSAnnotate from '../';
 import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
+import * as crypto from 'crypto';
 
 let toolType;
 let documentId;
 let documentPath;
 let devicePlateform;
-// let PAGE_HEIGHT;
 let NUM_PAGES = 0;
 let PASSWORD;
+let globalScale = parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65;
 let RENDER_OPTIONS = {
   documentId: documentId,
   pdfDocument: null,
   code: PASSWORD,
   documentPath: documentPath,
-  scale: parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65,
+  scale: globalScale,
   rotate: parseInt(localStorage.getItem(`${documentId}/rotate`), 10) || 0
 };
 let currentPage = 1;
@@ -23,7 +24,15 @@ PDFJSAnnotate.setStoreAdapter(new PDFJSAnnotate.LocalStoreAdapter());
 let globalStoreAdapter = PDFJSAnnotate.getStoreAdapter();
 pdfjsLib.workerSrc = './shared/pdf.worker.js';
 
-// code for communication with mobile and desktop device for loading pdf files in view
+const ENC_KEY = 'bf3c199c2470cb477d907b1e0917c17b';
+const IV = '5183666c72eec9e4';
+
+function decrypt(encrypted) {
+  let decipher = crypto.createDecipheriv('aes-256-cbc', ENC_KEY, IV);
+  let decrypted = decipher.update(encrypted, 'base64', 'utf8');
+  return (decrypted + decipher.final('utf8'));
+}
+
 document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform, passCode) {
   console.log('Update function called from ==> ', plateform);
   if (!documentPath) {
@@ -57,9 +66,11 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     console.log('Promise resolved value is ' + ret);
     if (devicePlateform === 'desktop') {
       RENDER_OPTIONS.scale = 2.00;
+      globalScale = RENDER_OPTIONS.scale;
     }
     if (passCode) {
-      RENDER_OPTIONS.code = passCode;
+      RENDER_OPTIONS.code = decrypt(passCode);
+      console.log('passcode decrypted', RENDER_OPTIONS.code);
     }
     RENDER_OPTIONS.documentId = documentId;
     RENDER_OPTIONS.documentPath = documentPath;
@@ -67,6 +78,8 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     setTimeout(() => {
       initBookMarks(document, window);
     }, 200);
+    // initialize the scale function after the viewport and scale has been initialize
+    initScaleRotate();
   }, function(res) {
     console.error(res);
     // eslint-disable-next-line no-undef
@@ -153,11 +166,11 @@ function render() {
     viewer.innerHTML = '';
     // initPdfContentTable(pdf);
     NUM_PAGES = pdf.numPages;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
       let page = UI.createPage(i + 1);
       viewer.appendChild(page);
     }
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
       UI.renderPage(i + 1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
         // let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
         // PAGE_HEIGHT = viewport.height;
@@ -571,26 +584,33 @@ function initBookMarks(document, window) {
     return found.length ? found : false;
   }
   function updateSearchCounterDisplay() {
-    document.getElementById('currentItemLabel').innerText = currentIndex;
-    document.getElementById('allItemLabel').innerText = searchResults.length;
+    if (searchResults.length === 0) {
+      document.getElementById('currentItemLabel').innerText = '';
+      document.getElementById('allItemLabel').innerText = '';
+    }
+    else {
+      document.getElementById('currentItemLabel').innerText = currentIndex;
+      document.getElementById('allItemLabel').innerText = searchResults.length;
+    }
   }
   function findNextOccurance() {
-    updateSearchCounterDisplay();
     if (inputHolder.value !== searchString) {
+      resetSearch(searchResults);
       searchString = inputHolder.value;
       currentIndex = 0;
       searchResults = findByTextContent(searchString, 'span', false);
     }
     if (searchResults) {
-      if (currentIndex > 1) {
+      if (currentIndex > 0) {
         let prevele = searchResults[currentIndex - 1];
-        prevele.style.background = 'Transparent';
+        prevele.innerHTML = prevele.textContent;
       }
       let nextResult = searchResults[currentIndex];
 
       if (nextResult) {
         nextResult.scrollIntoView(true);
-        nextResult.style.background = 'yellow';
+        let re = new RegExp(searchString, 'g');
+        nextResult.innerHTML = nextResult.innerHTML.replace(re, `<span class="search-highlight">${searchString}</span>`);
       }
       else {
         currentIndex = 0;
@@ -599,22 +619,26 @@ function initBookMarks(document, window) {
       }
       currentIndex += 1;
     }
+    updateSearchCounterDisplay();
   }
   function findPrevOccurance() {
-    updateSearchCounterDisplay();
     if (inputHolder.value !== searchString) {
       searchString = inputHolder.value;
       searchResults = findByTextContent(searchString, 'span', false);
       currentIndex = searchResults.length - 1;
     }
     if (searchResults) {
+      if (searchResults.length === currentIndex) {
+        currentIndex = 1;
+      }
       let prevele = searchResults[currentIndex];
-      prevele.style.background = 'Transparent';
+      prevele.innerHTML = prevele.textContent;
       let nextResult = searchResults[currentIndex - 1];
 
       if (nextResult) {
         nextResult.scrollIntoView(true);
-        nextResult.style.background = 'yellow';
+        let re = new RegExp(searchString, 'g');
+        nextResult.innerHTML = nextResult.innerHTML.replace(re, `<span class="search-highlight">${searchString}</span>`);
       }
       else {
         currentIndex = 0;
@@ -628,48 +652,61 @@ function initBookMarks(document, window) {
         currentIndex -= 1;
       }
     }
+    updateSearchCounterDisplay();
   }
+  function resetSearch(search) {
+    search.forEach((el) => {
+      let spanToReplace = el.querySelector('.search-highlight');
+      if (spanToReplace) {
+        el.innerHTML = el.innerText
+      }
+    });
+  }
+
   document.querySelector('.close-search').addEventListener('click', function(e) {
+    resetSearch(searchResults);
     searchResults = [];
     currentIndex = 0;
+    inputHolder.value = '';
+    searchString = null;
+    updateSearchCounterDisplay();
   });
   document.getElementById('searchNext').addEventListener('click', findNextOccurance);
   document.getElementById('searchPrev').addEventListener('click', findPrevOccurance);
 })(document, window);
 
 // scale rotate functions
-// (function() {
-//   function setScaleRotate(scale, rotate) {
-//     scale = parseFloat(scale, 10);
-//     rotate = parseInt(rotate, 10);
-//
-//     if (RENDER_OPTIONS.scale !== scale || RENDER_OPTIONS.rotate !== rotate) {
-//       RENDER_OPTIONS.scale = scale;
-//       RENDER_OPTIONS.rotate = rotate;
-//
-//       localStorage.setItem(`${RENDER_OPTIONS.documentId}/scale`, RENDER_OPTIONS.scale);
-//       localStorage.setItem(`${RENDER_OPTIONS.documentId}/rotate`, RENDER_OPTIONS.rotate % 360);
-//       render();
-//     }
-//   }
-//
-//   function handleScaleChange(e) {
-//     setScaleRotate(e.target.value, RENDER_OPTIONS.rotate);
-//   }
-//
-//   function handleRotateCWClick() {
-//     setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate + 90);
-//   }
-//
-//   function handleRotateCCWClick() {
-//     setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate - 90);
-//   }
-//
-//   document.querySelector('.toolbar select.scale').value = RENDER_OPTIONS.scale;
-//   document.querySelector('.toolbar select.scale').addEventListener('change', handleScaleChange);
-//   document.querySelector('.toolbar .rotate-ccw').addEventListener('click', handleRotateCCWClick);
-//   document.querySelector('.toolbar .rotate-cw').addEventListener('click', handleRotateCWClick);
-// })();
+function initScaleRotate() {
+  console.log('Global scale is ==> ', globalScale);
+  function setScaleRotate(scale, rotate) {
+    scale = parseFloat(scale, 10);
+    rotate = parseInt(rotate, 10);
+
+    if (RENDER_OPTIONS.scale !== scale || RENDER_OPTIONS.rotate !== rotate) {
+      RENDER_OPTIONS.scale = scale;
+      RENDER_OPTIONS.rotate = rotate;
+
+      localStorage.setItem(`${RENDER_OPTIONS.documentId}/scale`, RENDER_OPTIONS.scale);
+      localStorage.setItem(`${RENDER_OPTIONS.documentId}/rotate`, RENDER_OPTIONS.rotate % 360);
+      render();
+    }
+  }
+
+  function handleScaleChange(e) {
+    console.log('Global scale is ==> ', globalScale);
+    if (e.target.id === 'zoomOut' && globalScale > 0.50) {
+      globalScale -= 0.25;
+      setScaleRotate(globalScale, RENDER_OPTIONS.rotate);
+    }
+    if (e.target.id === 'zoomIn' && globalScale < 2.5) {
+      globalScale += 0.25;
+      setScaleRotate(globalScale, RENDER_OPTIONS.rotate);
+    }
+    console.log('Scale changed to ==> ', globalScale);
+  }
+  document.getElementById('zoomOut').addEventListener('click', handleScaleChange);
+  document.getElementById('zoomIn').addEventListener('click', handleScaleChange);
+}
 
 // handler for the table of content
 // function initPdfContentTable(pdf) {

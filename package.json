@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "@promises/wait": "^0.5.0",
-    "crypto": "^1.0.1",
+    "cryptojs": "^2.5.3",
     "jquery": "^3.5.1"
   },
   "files": [

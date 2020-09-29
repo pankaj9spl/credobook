@@ -19,8 +19,12 @@
 	<div class="table-content-header">
 		<div class="container-fluid full-container">
 			<select class="selectpicker" title="Table of Contents">
-				<option>Heading...................................................1</option>
+				<option>Heading 1</option>
 			</select>
+			<div style="display: inline-block;float: right;">
+				<a href="javascript://" id="zoomOut" title="Zoom Out">&#8722;</a>
+				<a href="javascript://" id="zoomIn" title="Zoom In">&#43;</a>
+			</div>
 		</div>
 	</div>
 	<div class="body-middle body-overflow">
@@ -106,6 +110,13 @@
 									<button class="btn btn-small" data-tool-type="draw">
 				            <span class="arrow-button arrow-button-static ">
 				                <img src="resources/img/icons/pencil.svg" alt=""/>
+				            </span>
+									</button>
+							</li>
+							<li>
+									<button class="btn btn-small" data-tool-type="highlight">
+				            <span class="arrow-button arrow-button-static ">
+				                <img src="resources/img/icons/strikethrough.svg" alt=""/>
 				            </span>
 									</button>
 							</li>
@@ -245,8 +256,9 @@
 <script src="__build__/index.js"></script>
 <script>
 	let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
+	let passcode = '+i3n3cimboL4rKh3xMqvUrciTIaCVaoRboTnmSBJU2I='
 	setTimeout(() => {
-    document.updateFromNative('test3.pdf', 'test3.pdf', '../test.json', 'desktop', 'twofish');
+    document.updateFromNative('example.pdf', 'example.pdf', '../test.json', 'desktop', passcode);
 	}, 100);
 </script>
 <script>

@@ -4,6 +4,9 @@ body {
     margin: 0;
 }
 
+.search-highlight {
+    background: #e46657;
+}
 /*.pdfViewer .canvasWrapper {*/
 /*    box-shadow: 0 0 3px #bbb;*/
 /*}*/
