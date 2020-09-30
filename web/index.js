@@ -178,11 +178,11 @@ function render() {
     viewer.innerHTML = '';
     // initPdfContentTable(pdf);
     NUM_PAGES = pdf.numPages;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < NUM_PAGES; i++) {
       let page = UI.createPage(i + 1);
       viewer.appendChild(page);
     }
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < NUM_PAGES; i++) {
       UI.renderPage(i + 1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
         // let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
         // PAGE_HEIGHT = viewport.height;
