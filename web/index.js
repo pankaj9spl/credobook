@@ -10,6 +10,7 @@ let documentPath;
 let devicePlateform;
 let NUM_PAGES = 0;
 let PASSWORD;
+let isScaleChanged = false;
 let globalScale = parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65;
 let RENDER_OPTIONS = {
   documentId: documentId,
@@ -176,7 +177,7 @@ function render() {
         // PAGE_HEIGHT = viewport.height;
       });
     }
-    initPageNumberHandler()
+    initPageNumberHandler();
   });
 }
 
@@ -595,6 +596,10 @@ function initBookMarks(document, window) {
     }
   }
   function findNextOccurance() {
+    if (isScaleChanged) {
+      isScaleChanged = false;
+      searchResults = findByTextContent(searchString, 'span', false);
+    }
     if (inputHolder.value !== searchString) {
       resetSearch(searchResults);
       searchString = inputHolder.value;
@@ -623,6 +628,11 @@ function initBookMarks(document, window) {
     updateSearchCounterDisplay();
   }
   function findPrevOccurance() {
+    // check if viewport rendering is changed after search is being made
+    if (isScaleChanged) {
+      isScaleChanged = false;
+      searchResults = findByTextContent(searchString, 'span', false);
+    }
     if (inputHolder.value !== searchString) {
       searchString = inputHolder.value;
       searchResults = findByTextContent(searchString, 'span', false);
@@ -691,6 +701,7 @@ function initScaleRotate() {
       localStorage.setItem(`${RENDER_OPTIONS.documentId}/rotate`, RENDER_OPTIONS.rotate % 360);
       render();
     }
+    isScaleChanged = true;
   }
 
   function handleScaleChange(e) {
@@ -711,7 +722,6 @@ function initScaleRotate() {
 
 // handler for page number
 function initPageNumberHandler() {
-
   let allSvgs;
   function isElementInViewport(el) {
     let rect = el.getBoundingClientRect();
