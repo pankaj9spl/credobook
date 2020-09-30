@@ -633,35 +633,26 @@ function initBookMarks(document, window) {
     updateSearchCounterDisplay();
   }
   function findPrevOccurance() {
+    previousIndex = currentIndex; // 5
+    currentIndex -= 1; // 4
+
+    let prevele = searchResults[previousIndex];
+    if (prevele) {
+      prevele.innerHTML = prevele.textContent;
+    }
     searchResults = findByTextContent(inputHolder.value, 'span', false);
     // check if viewport rendering is changed after search is being made
-    if (inputHolder.value !== searchString) {
-      searchString = inputHolder.value;
-      currentIndex = searchResults.length - 1;
-    }
     if (searchResults) {
-      if (searchResults.length === currentIndex) {
-        currentIndex = 1;
-      }
-      let prevele = searchResults[currentIndex];
-      prevele.innerHTML = prevele.textContent;
-      let nextResult = searchResults[currentIndex - 1];
-
+      let nextResult = searchResults[currentIndex];
       if (nextResult) {
         nextResult.scrollIntoView(true);
-        let re = new RegExp(searchString, 'g');
-        nextResult.innerHTML = nextResult.innerHTML.replace(re, `<span class="search-highlight">${searchString}</span>`);
+        let re = new RegExp(inputHolder.value, 'g');
+        nextResult.innerHTML = nextResult.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
       }
       else {
-        currentIndex = 0;
+        currentIndex = searchResults.length - 1;
         let nextResult = searchResults[currentIndex];
         nextResult.scrollIntoView(true);
-      }
-      if (currentIndex === 0) {
-        currentIndex = searchResults.length - 1;
-      }
-      else {
-        currentIndex -= 1;
       }
     }
     updateSearchCounterDisplay();
