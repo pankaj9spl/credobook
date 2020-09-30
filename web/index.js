@@ -178,11 +178,11 @@ function render() {
     viewer.innerHTML = '';
     // initPdfContentTable(pdf);
     NUM_PAGES = pdf.numPages;
-    for (let i = 0; i < NUM_PAGES; i++) {
+    for (let i = 0; i < 5; i++) {
       let page = UI.createPage(i + 1);
       viewer.appendChild(page);
     }
-    for (let i = 0; i < NUM_PAGES; i++) {
+    for (let i = 0; i < 5; i++) {
       UI.renderPage(i + 1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
         // let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
         // PAGE_HEIGHT = viewport.height;
@@ -558,7 +558,8 @@ function initBookMarks(document, window) {
   let searchResults = [];
   let searchString;
   let inputHolder = document.querySelector('.table-input');
-  let currentIndex = 0;
+  let currentIndex = -1;
+  let previousIndex = 0;
 
   function findByTextContent(needle, haystack, precise) {
   // needle: String, the string to be found within the elements.
@@ -603,51 +604,39 @@ function initBookMarks(document, window) {
       document.getElementById('allItemLabel').innerText = '';
     }
     else {
-      document.getElementById('currentItemLabel').innerText = currentIndex;
+      document.getElementById('currentItemLabel').innerText = currentIndex + 1;
       document.getElementById('allItemLabel').innerText = searchResults.length;
     }
   }
   function findNextOccurance() {
-    if (isScaleChanged) {
-      isScaleChanged = false;
-      searchResults = findByTextContent(searchString, 'span', false);
-    }
-    if (inputHolder.value !== searchString) {
-      resetSearch(searchResults);
-      searchString = inputHolder.value;
-      currentIndex = 0;
-      searchResults = findByTextContent(searchString, 'span', false);
-    }
-    if (searchResults) {
-      if (currentIndex > 0) {
-        let prevele = searchResults[currentIndex - 1];
-        prevele.innerHTML = prevele.textContent;
-      }
-      let nextResult = searchResults[currentIndex];
+    previousIndex = currentIndex;
+    currentIndex += 1;
 
+    let prevele = searchResults[previousIndex];
+    if (prevele) {
+      prevele.innerHTML = prevele.textContent;
+    }
+    searchResults = findByTextContent(inputHolder.value, 'span', false);
+    if (searchResults) {
+      let nextResult = searchResults[currentIndex];
       if (nextResult) {
         nextResult.scrollIntoView(true);
-        let re = new RegExp(searchString, 'g');
-        nextResult.innerHTML = nextResult.innerHTML.replace(re, `<span class="search-highlight">${searchString}</span>`);
+        let re = new RegExp(inputHolder.value, 'g');
+        nextResult.innerHTML = nextResult.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
       }
       else {
         currentIndex = 0;
         let nextResult = searchResults[currentIndex];
         nextResult.scrollIntoView(true);
       }
-      currentIndex += 1;
     }
     updateSearchCounterDisplay();
   }
   function findPrevOccurance() {
+    searchResults = findByTextContent(inputHolder.value, 'span', false);
     // check if viewport rendering is changed after search is being made
-    if (isScaleChanged) {
-      isScaleChanged = false;
-      searchResults = findByTextContent(searchString, 'span', false);
-    }
     if (inputHolder.value !== searchString) {
       searchString = inputHolder.value;
-      searchResults = findByTextContent(searchString, 'span', false);
       currentIndex = searchResults.length - 1;
     }
     if (searchResults) {

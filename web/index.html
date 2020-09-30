@@ -47,7 +47,7 @@
 					</a>
 			</div>
 			<div style="display: inline-block;float: right;">
-				<input  type="number" id="currentPage" title="CurrentPage"/>
+				<input  id="currentPage" title="CurrentPage"/>
 				<span>/</span>
 				<label id="totalPages" title="Total Pages"></label>
 			</div>
@@ -139,13 +139,13 @@
 				            </span>
 									</button>
 							</li>
-							<li>
-									<button class="btn btn-small" data-tool-type="highlight">
-				            <span class="arrow-button arrow-button-static ">
-				                <img src="resources/img/icons/strikethrough.svg" alt=""/>
-				            </span>
-									</button>
-							</li>
+<!--							<li>-->
+<!--									<button class="btn btn-small" data-tool-type="highlight">-->
+<!--				            <span class="arrow-button arrow-button-static ">-->
+<!--				                <img src="resources/img/icons/strikethrough.svg" alt=""/>-->
+<!--				            </span>-->
+<!--									</button>-->
+<!--							</li>-->
 							<li class="dropup more-effect">
 								<button class="btn btn-small" data-toggle="dropdown">
                   <span class="arrow-button arrow-button-static">
@@ -284,7 +284,7 @@
 	let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
 	let passcode = '+i3n3cimboL4rKh3xMqvUrciTIaCVaoRboTnmSBJU2I='
 	setTimeout(() => {
-    document.updateFromNative('example.pdf', 'example.pdf', '../test.json', 'android', passcode);
+    document.updateFromNative('example.pdf', 'example.pdf', '../test.json', 'desktop', passcode);
 	}, 100);
 </script>
 <script>
