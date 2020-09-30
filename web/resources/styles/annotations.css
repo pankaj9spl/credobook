@@ -38,12 +38,13 @@ body {
 
 
 #currentPage, #totalPages{
-  padding: 5px;
-  margin: 9px 6px 7px 6px;
-  border: 1px solid grey;
-  min-width: 33px;
-  display: inline-block;
-  text-align: center;
+    padding: 5px;
+    margin: 9px 6px 7px 6px;
+    border: none;
+    min-width: 33px;
+    display: inline-block;
+    text-align: center;
+    background: #d1d3d4;
 }
 #comment-wrapper {
     position: absolute;

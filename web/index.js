@@ -598,10 +598,11 @@ function initBookMarks(document, window) {
     });
     return found.length ? found : false;
   }
-  function updateSearchCounterDisplay() {
-    if (searchResults.length === 0) {
-      document.getElementById('currentItemLabel').innerText = '';
-      document.getElementById('allItemLabel').innerText = '';
+  function updateSearchCounterDisplay(flag) {
+    if (flag === 'noresult') {
+      // document.getElementById('find-pdf-count').innerText = '0 Results';
+      document.getElementById('currentItemLabel').innerText = 0;
+      document.getElementById('allItemLabel').innerText = 0;
     }
     else {
       document.getElementById('currentItemLabel').innerText = currentIndex + 1;
@@ -630,6 +631,10 @@ function initBookMarks(document, window) {
         nextResult.scrollIntoView(true);
       }
     }
+    else {
+      updateSearchCounterDisplay('noresult');
+      return;
+    }
     updateSearchCounterDisplay();
   }
   function findPrevOccurance() {
@@ -654,6 +659,10 @@ function initBookMarks(document, window) {
         let nextResult = searchResults[currentIndex];
         nextResult.scrollIntoView(true);
       }
+    }
+    else {
+      updateSearchCounterDisplay('noresult');
+      return;
     }
     updateSearchCounterDisplay();
   }
