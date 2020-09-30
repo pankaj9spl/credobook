@@ -29,14 +29,18 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    overflow-x: hidden;
+    overflow: auto;
 }
+
+#currentPage {
+    width: 20px;
+}
+
 
 #currentPage, #totalPages{
   padding: 5px;
-  margin: 2px;
+  margin: 9px 6px 7px 6px;
   border: 1px solid grey;
-  border-radius: 58px;
   min-width: 33px;
   display: inline-block;
   text-align: center;
@@ -93,4 +97,25 @@ body {
 }
 .active {
     background: #aa0e91 !important;
+}
+
+h1 {
+    color: #EEEEEE;
+}
+
+#loader-wrapper .loader-section {
+    position: fixed;
+    top: 0;
+    width: 51%;
+    height: 100%;
+    background: #222222;
+    z-index: 1000;
+}
+
+#loader-wrapper .loader-section.section-left {
+    left: 0;
+}
+
+#loader-wrapper .loader-section.section-right {
+    right: 0;
 }

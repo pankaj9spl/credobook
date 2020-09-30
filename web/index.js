@@ -34,6 +34,16 @@ function decrypt(encrypted) {
   return (decrypted + decipher.final('utf8'));
 }
 
+function toggleLoader(flag) {
+  let loader = document.getElementById('loader');
+  if (flag) {
+    loader.classList.add('show-loader');
+  }
+  else {
+    loader.classList.remove('show-loader');
+  }
+}
+
 document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform, passCode) {
   console.log('Update function called from ==> ', plateform);
   if (!documentPath) {
@@ -154,6 +164,7 @@ function getPdfId() {
 getPdfId();
 
 function render() {
+  toggleLoader(true);
   const loadingTask = pdfjsLib.getDocument({
     url: RENDER_OPTIONS.documentPath,
     cMapUrl: 'shared/cmaps/',
@@ -178,6 +189,7 @@ function render() {
       });
     }
     initPageNumberHandler();
+    toggleLoader(false);
   });
 }
 
@@ -706,11 +718,11 @@ function initScaleRotate() {
 
   function handleScaleChange(e) {
     console.log('Global scale is ==> ', globalScale);
-    if (e.target.id === 'zoomOut' && globalScale > 0.50) {
+    if (e.currentTarget.id === 'zoomOut' && globalScale > 0.50) {
       globalScale -= 0.25;
       setScaleRotate(globalScale, RENDER_OPTIONS.rotate);
     }
-    if (e.target.id === 'zoomIn' && globalScale < 2.5) {
+    if (e.currentTarget.id === 'zoomIn' && globalScale < 2.5) {
       globalScale += 0.25;
       setScaleRotate(globalScale, RENDER_OPTIONS.rotate);
     }
@@ -744,11 +756,25 @@ function initPageNumberHandler() {
     setPageNumber();
   }
   function setPageNumber() {
-    document.getElementById('currentPage').innerText = currentPage || 1;
+    document.getElementById('currentPage').value = currentPage || 1;
     document.getElementById('totalPages').innerText = NUM_PAGES;
+  }
+  function goToPage(page) {
+    if (page > 0 && page <= NUM_PAGES) {
+      let pageToScroll = document.querySelector(`svg[data-pdf-annotate-page="${page}"]`);
+      pageToScroll.scrollIntoView(true);
+    }
+  }
+
+  function handleKeyPress(e) {
+    let key = e.keyCode || e.which;
+    if (key === 13) {
+      goToPage(e.target.value);
+    }
   }
   setTimeout(setPageNumber, 200);
   document.getElementById('content-wrapper').addEventListener('scroll', handlePageNumber);
+  document.getElementById('currentPage').addEventListener('keypress', handleKeyPress);
 }
 
 // handler for the table of content

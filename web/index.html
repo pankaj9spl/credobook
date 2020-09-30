@@ -13,8 +13,21 @@
 	<link rel="stylesheet" href="resources/styles/style.css">
 	<link rel="stylesheet" type="text/css" href="shared/pdf_viewer.css"/>
 	<link rel="stylesheet" type="text/css" href="resources/styles/annotations.css"/>
+	<link rel="stylesheet" type="text/css" href="resources/styles/loader.css"/>
 </head>
 <body id="body">
+<!--loader section -->
+<div id="loader" class='loader'>
+	<div class="overlay"></div>
+  <div class='loader--dot'></div>
+  <div class='loader--dot'></div>
+  <div class='loader--dot'></div>
+  <div class='loader--dot'></div>
+  <div class='loader--dot'></div>
+  <div class='loader--dot'></div>
+  <div class='loader--text'></div>
+</div>
+<!-- end loader section -->
 <div class="full-section">
 	<div class="table-content-header">
 		<div class="container-fluid full-container">
@@ -22,11 +35,20 @@
 				<option>Heading 1</option>
 			</select>
 			<div style="display: inline-block;float: right;">
-				<a href="javascript://" id="zoomOut" title="Zoom Out">&#8722;</a>
-				<a href="javascript://" id="zoomIn" title="Zoom In">&#43;</a>
+					<a  id="zoomOut" type="button" class="btn btn-small" style="width: 20px;">
+						<span class="arrow-button arrow-button-static">
+							<img src="resources/img/icons/minus.svg" alt=""/>
+						</span>
+					</a>
+					<a  id="zoomIn" type="button" class="btn btn-small" style="width: 20px;">
+						<span class="arrow-button arrow-button-static">
+							<img src="resources/img/icons/plus.svg" alt=""/>
+						</span>
+					</a>
 			</div>
 			<div style="display: inline-block;float: right;">
-				<label  id="currentPage" title="CurrentPage"></label>
+				<input  type="number" id="currentPage" title="CurrentPage"/>
+				<span>/</span>
 				<label id="totalPages" title="Total Pages"></label>
 			</div>
 		</div>
@@ -262,7 +284,7 @@
 	let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
 	let passcode = '+i3n3cimboL4rKh3xMqvUrciTIaCVaoRboTnmSBJU2I='
 	setTimeout(() => {
-    document.updateFromNative('example.pdf', 'example.pdf', '../test.json', 'desktop', passcode);
+    document.updateFromNative('example.pdf', 'example.pdf', '../test.json', 'android', passcode);
 	}, 100);
 </script>
 <script>
