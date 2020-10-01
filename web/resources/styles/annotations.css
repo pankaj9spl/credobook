@@ -35,8 +35,6 @@ body {
 #currentPage {
     width: 20px;
 }
-
-
 #currentPage, #totalPages{
     padding: 5px;
     margin: 9px 6px 7px 6px;

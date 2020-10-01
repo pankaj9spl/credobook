@@ -10,6 +10,7 @@ let documentPath;
 let devicePlateform;
 let NUM_PAGES = 0;
 let PASSWORD;
+let PDF_DOC;
 let isScaleChanged = false;
 let globalScale = parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65;
 let RENDER_OPTIONS = {
@@ -43,6 +44,17 @@ function toggleLoader(flag) {
     loader.classList.remove('show-loader');
   }
 }
+
+document.clearResource = function() {
+  document.querySelectorAll('canvas').forEach((item) => {
+    let context = item.getContext('2d');
+    context.clearRect(0, 0, item.width, item.height);
+    item.height = 0;
+    item.width = 0;
+    item.style.width = 0;
+    item.style.height = 0;
+  });
+};
 
 document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform, passCode) {
   console.log('Update function called from ==> ', plateform);
@@ -80,7 +92,8 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
       globalScale = RENDER_OPTIONS.scale;
     }
     if (passCode) {
-      RENDER_OPTIONS.code = decrypt(passCode);
+      // RENDER_OPTIONS.code = decrypt(passCode);
+      RENDER_OPTIONS.code = passCode;
       console.log('passcode decrypted', RENDER_OPTIONS.code);
     }
     RENDER_OPTIONS.documentId = documentId;
@@ -165,15 +178,25 @@ getPdfId();
 
 function render() {
   toggleLoader(true);
-  const loadingTask = pdfjsLib.getDocument({
-    url: RENDER_OPTIONS.documentPath,
-    cMapUrl: 'shared/cmaps/',
-    cMapPacked: true,
-    password: RENDER_OPTIONS.code
-  });
-
-  loadingTask.promise.then((pdf) => {
+  let loadingTask;
+  if (!PDF_DOC) {
+    loadingTask = pdfjsLib.getDocument({
+      url: RENDER_OPTIONS.documentPath,
+      cMapUrl: 'shared/cmaps/',
+      cMapPacked: true,
+      password: RENDER_OPTIONS.code
+    });
+    loadingTask = loadingTask.promise;
+  }
+  else {
+    loadingTask = new Promise((resolve, reject) => {
+      resolve(PDF_DOC);
+    });
+  }
+  // load the alreadyloaded doc
+  loadingTask.then((pdf) => {
     RENDER_OPTIONS.pdfDocument = pdf;
+    PDF_DOC = pdf;
     let viewer = document.getElementById('viewer');
     viewer.innerHTML = '';
     // initPdfContentTable(pdf);
@@ -667,6 +690,9 @@ function initBookMarks(document, window) {
     updateSearchCounterDisplay();
   }
   function resetSearch(search) {
+    if (!search) {
+      return;
+    }
     search.forEach((el) => {
       let spanToReplace = el.querySelector('.search-highlight');
       if (spanToReplace) {
@@ -678,7 +704,7 @@ function initBookMarks(document, window) {
   document.querySelector('.close-search').addEventListener('click', function(e) {
     resetSearch(searchResults);
     searchResults = [];
-    currentIndex = 0;
+    currentIndex = -1;
     inputHolder.value = '';
     searchString = null;
     updateSearchCounterDisplay();
@@ -713,6 +739,9 @@ function initScaleRotate() {
     }
     if (e.currentTarget.id === 'zoomIn' && globalScale < 2.5) {
       globalScale += 0.25;
+      if (devicePlateform !== 'desktop' && globalScale > 1.3) {
+        return;
+      }
       setScaleRotate(globalScale, RENDER_OPTIONS.rotate);
     }
     console.log('Scale changed to ==> ', globalScale);
@@ -765,34 +794,3 @@ function initPageNumberHandler() {
   document.getElementById('content-wrapper').addEventListener('scroll', handlePageNumber);
   document.getElementById('currentPage').addEventListener('keypress', handleKeyPress);
 }
-
-// handler for the table of content
-// function initPdfContentTable(pdf) {
-//   let tableOfContent = pdf.getOutline();
-//   let outLine = [];
-//   tableOfContent.then((outline) => {
-//     if (outline) {
-//       console.log('Pdf has table of content available');
-//       for (let i = 0; i < outline.length; i++) {
-//         const dest = outline[i].dest;
-//         // Get each page ref
-//         if (typeof dest !== 'object') {
-//           pdf.getPageIndex(dest).then(function(id) {
-//             // page number = index + 1
-//             outLine.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
-//           });
-//         }
-//         else {
-//           pdf.getDestination(dest[1].name).then(function(dest) {
-//             const ref = dest[0];
-//             // And the page id
-//             pdf.getPageIndex(ref).then(function(id) {
-//             // page number = index + 1
-//               outLine.push({ title: outline.title, pageNumber: parseInt(id) + 1 });
-//             });
-//           });
-//         }
-//       }
-//     }
-//   });
-// }
