@@ -32,18 +32,27 @@ body {
     overflow: auto;
 }
 
+#currentPage, #totalPages{
+  padding: 5px;
+  margin: 9px 6px 7px 6px;
+  border: 1px solid transparent;
+  min-width: 33px;
+  display: inline-block;
+  text-align: center;
+}
 #currentPage {
     width: 20px;
+    background: none;
+    border-bottom: 1px solid #c4c4c4;
+    border-radius: 0;
 }
-#currentPage, #totalPages{
-    padding: 5px;
-    margin: 9px 6px 7px 6px;
-    border: none;
-    min-width: 33px;
-    display: inline-block;
-    text-align: center;
-    background: #d1d3d4;
+
+#currentPage:focus {
+    background-color: #fff;
+    border: 1px solid #c4c4c4;
+
 }
+
 #comment-wrapper {
     position: absolute;
     top: 0;

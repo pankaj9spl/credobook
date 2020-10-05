@@ -11,6 +11,7 @@ let devicePlateform;
 let NUM_PAGES = 0;
 let PASSWORD;
 let PDF_DOC;
+let PAGE_HEIGHT;
 let isScaleChanged = false;
 let globalScale = parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65;
 let RENDER_OPTIONS = {
@@ -92,8 +93,8 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
       globalScale = RENDER_OPTIONS.scale;
     }
     if (passCode) {
-      // RENDER_OPTIONS.code = decrypt(passCode);
-      RENDER_OPTIONS.code = passCode;
+      RENDER_OPTIONS.code = decrypt(passCode);
+      // RENDER_OPTIONS.code = passCode;
       console.log('passcode decrypted', RENDER_OPTIONS.code);
     }
     RENDER_OPTIONS.documentId = documentId;
@@ -193,7 +194,7 @@ function render() {
       resolve(PDF_DOC);
     });
   }
-  // load the alreadyloaded doc
+  // load the already loaded doc
   loadingTask.then((pdf) => {
     RENDER_OPTIONS.pdfDocument = pdf;
     PDF_DOC = pdf;
@@ -733,15 +734,21 @@ function initScaleRotate() {
 
   function handleScaleChange(e) {
     console.log('Global scale is ==> ', globalScale);
-    if (e.currentTarget.id === 'zoomOut' && globalScale > 0.50) {
+    let minScale, maxScale;
+    if (devicePlateform === 'desktop') {
+      maxScale = 2;
+      minScale = 0.50;
+    }
+    else {
+      maxScale = 1.50;
+      minScale = 0.50;
+    }
+    if (e.currentTarget.id === 'zoomOut' && globalScale > minScale) {
       globalScale -= 0.25;
       setScaleRotate(globalScale, RENDER_OPTIONS.rotate);
     }
-    if (e.currentTarget.id === 'zoomIn' && globalScale < 2.5) {
+    if (e.currentTarget.id === 'zoomIn' && globalScale < maxScale) {
       globalScale += 0.25;
-      if (devicePlateform !== 'desktop' && globalScale > 1.3) {
-        return;
-      }
       setScaleRotate(globalScale, RENDER_OPTIONS.rotate);
     }
     console.log('Scale changed to ==> ', globalScale);
@@ -772,6 +779,7 @@ function initPageNumberHandler() {
       }
     }
     setPageNumber();
+    // convertToBase64(currentPage);
   }
   function setPageNumber() {
     document.getElementById('currentPage').value = currentPage || 1;
@@ -788,6 +796,22 @@ function initPageNumberHandler() {
     let key = e.keyCode || e.which;
     if (key === 13) {
       goToPage(e.target.value);
+    }
+  }
+  function convertToBase64(currentPage) {
+    let canvaseToConvert = document.getElementById(`page${currentPage}`);
+    if (canvaseToConvert) {
+      let parent = canvaseToConvert.parentElement;
+      let img = document.createElement('img');
+      img.setAttribute('width', canvaseToConvert.width);
+      img.setAttribute('height', canvaseToConvert.height);
+      img.style.width = canvaseToConvert.style.width;
+      img.style.height = canvaseToConvert.style.height;
+      img.setAttribute('src', canvaseToConvert.toDataURL());
+      parent.appendChild(img);
+      let context = canvaseToConvert.getContext('2d');
+      context.clearRect(0, 0, canvaseToConvert.width, canvaseToConvert.height);
+      canvaseToConvert.remove();
     }
   }
   setTimeout(setPageNumber, 200);
