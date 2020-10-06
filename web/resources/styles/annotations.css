@@ -4,6 +4,17 @@ body {
     margin: 0;
 }
 
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
 .search-highlight {
     background: #e46657;
 }
@@ -11,8 +22,33 @@ body {
 /*    box-shadow: 0 0 3px #bbb;*/
 /*}*/
 
+
+.prev {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    z-index: 9999;
+    width: 30px;
+    height: 30px;
+
+}
+.prev img {
+    transform: rotate(90deg);
+}
+.next {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    z-index: 9999;
+    width: 30px;
+    height: 30px;
+}
+.next img {
+    transform: rotate(-90deg);
+}
 .pdfViewer .page {
     margin-bottom: 10px;
+    box-sizing: content-box;
 }
 
 .annotationLayer {
@@ -42,8 +78,6 @@ body {
 }
 #currentPage {
     width: 20px;
-    background: none;
-    border-bottom: 1px solid #c4c4c4;
     border-radius: 0;
 }
 

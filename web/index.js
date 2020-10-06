@@ -172,12 +172,12 @@ function getPdfId() {
     }, 1000);
   }
   else {
-    render();
+    render(1);
   }
 }
 getPdfId();
 
-function render() {
+function render(page) {
   toggleLoader(true);
   let loadingTask;
   if (!PDF_DOC) {
@@ -194,29 +194,63 @@ function render() {
       resolve(PDF_DOC);
     });
   }
-  // load the already loaded doc
+  // load the doc from cache
   loadingTask.then((pdf) => {
     RENDER_OPTIONS.pdfDocument = pdf;
     PDF_DOC = pdf;
+    if (currentPage === 1) {
+      initPageNumberHandler();
+    }
     let viewer = document.getElementById('viewer');
     viewer.innerHTML = '';
-    // initPdfContentTable(pdf);
     NUM_PAGES = pdf.numPages;
-    for (let i = 0; i < NUM_PAGES; i++) {
-      let page = UI.createPage(i + 1);
-      viewer.appendChild(page);
-    }
-    for (let i = 0; i < NUM_PAGES; i++) {
-      UI.renderPage(i + 1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
-        // let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
-        // PAGE_HEIGHT = viewport.height;
-      });
-    }
-    initPageNumberHandler();
+    let pageToRender = UI.createPage(page);
+    viewer.appendChild(pageToRender);
+    UI.renderPage(page, RENDER_OPTIONS);
     toggleLoader(false);
   });
 }
+// handler for page number
 
+function initPageNumberHandler() {
+  function setPageNumber() {
+    document.getElementById('currentPage').value = currentPage || 1;
+    document.getElementById('totalPages').innerText = NUM_PAGES;
+  }
+  function handleKeyPress(e) {
+    let key = e.keyCode || e.which;
+    if (key === 13) {
+      let pageToGo = parseInt(e.target.value);
+      if (pageToGo > 0 && pageToGo <= NUM_PAGES && typeof pageToGo === 'number') {
+        currentPage = pageToGo;
+        render(currentPage);
+      }
+      setPageNumber();
+    }
+  }
+  setTimeout(setPageNumber, 200);
+  document.getElementById('next').addEventListener('click', (event) => {
+    if (currentPage < NUM_PAGES) {
+      currentPage += 1;
+      render(currentPage);
+      setPageNumber();
+    }
+  });
+  document.getElementById('prev').addEventListener('click', (event) => {
+    if (currentPage > 1) {
+      currentPage -= 1;
+      render(currentPage);
+      setPageNumber();
+    }
+  });
+
+  // document.getElementById('content-wrapper').addEventListener('scroll', handlePageNumber);
+  // document.getElementById('content-wrapper').addEventListener('touchmove', handlePageNumber);
+  document.getElementById('currentPage').addEventListener('keypress', handleKeyPress);
+  // document.addEventListener('touchmove', handlePageNumber);
+}
+
+// touch mapper function
 (function() {
   function touchHandler(event) {
     let touches = event.changedTouches;
@@ -580,7 +614,6 @@ function initBookMarks(document, window) {
 (function(document, window) {
   // global variable for search state
   let searchResults = [];
-  let searchString;
   let inputHolder = document.querySelector('.table-input');
   let currentIndex = -1;
   let previousIndex = 0;
@@ -707,7 +740,6 @@ function initBookMarks(document, window) {
     searchResults = [];
     currentIndex = -1;
     inputHolder.value = '';
-    searchString = null;
     updateSearchCounterDisplay();
   });
   document.getElementById('searchNext').addEventListener('click', findNextOccurance);
@@ -717,6 +749,8 @@ function initBookMarks(document, window) {
 // scale rotate functions
 function initScaleRotate() {
   console.log('Global scale is ==> ', globalScale);
+  let scaleEle = document.getElementById('scaleSelect');
+  scaleEle.value = RENDER_OPTIONS.scale;
   function setScaleRotate(scale, rotate) {
     scale = parseFloat(scale, 10);
     rotate = parseInt(rotate, 10);
@@ -727,94 +761,52 @@ function initScaleRotate() {
 
       localStorage.setItem(`${RENDER_OPTIONS.documentId}/scale`, RENDER_OPTIONS.scale);
       localStorage.setItem(`${RENDER_OPTIONS.documentId}/rotate`, RENDER_OPTIONS.rotate % 360);
-      render();
+      render(1);
     }
     isScaleChanged = true;
   }
 
   function handleScaleChange(e) {
-    console.log('Global scale is ==> ', globalScale);
-    let minScale, maxScale;
-    if (devicePlateform === 'desktop') {
-      maxScale = 2;
-      minScale = 0.50;
+    let scaleValue = e.currentTarget.value;
+    if (parseFloat(scaleValue)) {
+      setScaleRotate(parseFloat(scaleValue), RENDER_OPTIONS.rotate);
     }
-    else {
-      maxScale = 1.50;
-      minScale = 0.50;
-    }
-    if (e.currentTarget.id === 'zoomOut' && globalScale > minScale) {
-      globalScale -= 0.25;
-      setScaleRotate(globalScale, RENDER_OPTIONS.rotate);
-    }
-    if (e.currentTarget.id === 'zoomIn' && globalScale < maxScale) {
-      globalScale += 0.25;
-      setScaleRotate(globalScale, RENDER_OPTIONS.rotate);
-    }
-    console.log('Scale changed to ==> ', globalScale);
   }
-  document.getElementById('zoomOut').addEventListener('click', handleScaleChange);
-  document.getElementById('zoomIn').addEventListener('click', handleScaleChange);
+  document.getElementById('scaleSelect').addEventListener('change', handleScaleChange);
 }
 
-// handler for page number
-function initPageNumberHandler() {
-  let allSvgs;
-  function isElementInViewport(el) {
-    let rect = el.getBoundingClientRect();
+// attacg all key handlers
+(function keyBinder() {
+  // define all handler
+  let nextButton = document.getElementById('next');
+  let prevButton = document.getElementById('prev');
 
-    return rect.bottom > 0 &&
-        rect.right > 0 &&
-        rect.left < (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */ &&
-        rect.top < (window.innerHeight || document.documentElement.clientHeight);
-  }
-  function handlePageNumber() {
-    if (!allSvgs) {
-      allSvgs = document.querySelectorAll('.annotationLayer');
-    }
-    for (let i = 0; i < allSvgs.length; i++) {
-      if (isElementInViewport(allSvgs[i])) {
-        currentPage = parseInt(allSvgs[i].getAttribute('data-pdf-annotate-page'));
-        break;
-      }
-    }
-    setPageNumber();
-    // convertToBase64(currentPage);
-  }
-  function setPageNumber() {
-    document.getElementById('currentPage').value = currentPage || 1;
-    document.getElementById('totalPages').innerText = NUM_PAGES;
-  }
-  function goToPage(page) {
-    if (page > 0 && page <= NUM_PAGES) {
-      let pageToScroll = document.querySelector(`svg[data-pdf-annotate-page="${page}"]`);
-      pageToScroll.scrollIntoView(true);
-    }
-  }
-
+  // let nav = document.querySelector('.more-buttons');
+  // let win = document.querySelector('#longPress');
+  // let closeButton = document.querySelector('.close-button');
+  //
+  // win.addEventListener('click', (event) => {
+  //   nav.classList += 'show';
+  // });
+  //
+  // closeButton.addEventListener('click', () => {
+  //   nav.classList.remove('show');
+  //   nav.removeAttr('style');
+  // });
   function handleKeyPress(e) {
+    if (document.activeElement.tagName === 'SELECT') {
+      return;
+    }
+    console.log('Keypress called');
     let key = e.keyCode || e.which;
-    if (key === 13) {
-      goToPage(e.target.value);
+    switch (key) {
+      case 37:
+        prevButton.click();
+        break;
+      case 39:
+        nextButton.click();
+        break;
     }
   }
-  function convertToBase64(currentPage) {
-    let canvaseToConvert = document.getElementById(`page${currentPage}`);
-    if (canvaseToConvert) {
-      let parent = canvaseToConvert.parentElement;
-      let img = document.createElement('img');
-      img.setAttribute('width', canvaseToConvert.width);
-      img.setAttribute('height', canvaseToConvert.height);
-      img.style.width = canvaseToConvert.style.width;
-      img.style.height = canvaseToConvert.style.height;
-      img.setAttribute('src', canvaseToConvert.toDataURL());
-      parent.appendChild(img);
-      let context = canvaseToConvert.getContext('2d');
-      context.clearRect(0, 0, canvaseToConvert.width, canvaseToConvert.height);
-      canvaseToConvert.remove();
-    }
-  }
-  setTimeout(setPageNumber, 200);
-  document.getElementById('content-wrapper').addEventListener('scroll', handlePageNumber);
-  document.getElementById('currentPage').addEventListener('keypress', handleKeyPress);
-}
+  document.addEventListener('keyup', handleKeyPress);
+})();

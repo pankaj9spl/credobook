@@ -16,6 +16,8 @@
 	<link rel="stylesheet" type="text/css" href="resources/styles/loader.css"/>
 </head>
 <body id="body">
+<a id="prev" class="prev"><img src="resources/img/icons/down-angle-color.svg" alt="Prev" title="previous"/></a>
+<a id="next" class="next"><img src="resources/img/icons/down-angle-color.svg" alt="Next" title="Next"/></a>
 <!--loader section -->
 <div id="loader" class='loader'>
 	<div class="overlay"></div>
@@ -32,19 +34,20 @@
 	<div class="table-content-header">
 		<div class="container-fluid full-container">
 			<div style="display: inline-block;float: right;">
-					<a  id="zoomOut" type="button" class="btn btn-small" style="width: 20px;">
-						<span class="arrow-button arrow-button-static">
-							<img src="resources/img/icons/minus.svg" alt=""/>
-						</span>
-					</a>
-					<a  id="zoomIn" type="button" class="btn btn-small" style="width: 20px;">
-						<span class="arrow-button arrow-button-static">
-							<img src="resources/img/icons/plus.svg" alt=""/>
-						</span>
-					</a>
+					<select id="scaleSelect" class="form-control" style="height: 44px;">
+						<option value="0.33">33%</option>
+						<option value="0.50">50%</option>
+						<option value="0.65">65%</option>
+						<option value=0.75">75%</option>
+						<option value="1">100%</option>
+						<option value="1.33">130%</option>
+						<option value="1.5">150%</option>
+						<option value="2">200%</option>
+						<option value="1">Actual Page</option>
+					</select>
 			</div>
 			<div style="display: inline-block;float: right;">
-				<input  id="currentPage" title="CurrentPage"/>
+				<input type="number"  id="currentPage" title="CurrentPage"/>
 				<span>/</span>
 				<label id="totalPages" title="Total Pages"></label>
 			</div>
@@ -282,12 +285,11 @@
 	let passcode = '+i3n3cimboL4rKh3xMqvUrciTIaCVaoRboTnmSBJU2I='
 	// let passcode = '73034c5c-9a4c-4b17-abc1-b47db6dd7fd4'
 	setTimeout(() => {
-    document.updateFromNative('example.pdf', 'example.pdf', '../test.json', 'android', passcode);
+    document.updateFromNative('example.pdf', 'example.pdf', '../test.json', 'desktop', passcode);
 
 	}, 1);
 </script>
 <script>
-	// $('.selectpicker').selectpicker();
 	$(document).ready(function () {
 		$(".content-search").click(function () {
 			$(".search-content").slideDown().addClass('searchShow');
