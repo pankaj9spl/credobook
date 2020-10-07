@@ -12,7 +12,7 @@ let NUM_PAGES = 0;
 let PASSWORD;
 let PDF_DOC;
 let PAGE_HEIGHT;
-let isScaleChanged = false;
+let ACTUAL_SCALE = 0.65;
 let globalScale = parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65;
 let RENDER_OPTIONS = {
   documentId: documentId,
@@ -87,15 +87,14 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
   });
 
   isStorageSet.then(function(ret) {
-    console.log('Promise resolved value is ' + ret);
     if (devicePlateform === 'desktop') {
       RENDER_OPTIONS.scale = 2.00;
+      ACTUAL_SCALE = 1.50;
       globalScale = RENDER_OPTIONS.scale;
     }
     if (passCode) {
       RENDER_OPTIONS.code = decrypt(passCode);
       // RENDER_OPTIONS.code = passCode;
-      console.log('passcode decrypted', RENDER_OPTIONS.code);
     }
     RENDER_OPTIONS.documentId = documentId;
     RENDER_OPTIONS.documentPath = documentPath;
@@ -198,56 +197,42 @@ function render(page) {
   loadingTask.then((pdf) => {
     RENDER_OPTIONS.pdfDocument = pdf;
     PDF_DOC = pdf;
-    if (currentPage === 1) {
-      initPageNumberHandler();
-    }
     let viewer = document.getElementById('viewer');
     viewer.innerHTML = '';
     NUM_PAGES = pdf.numPages;
     let pageToRender = UI.createPage(page);
     viewer.appendChild(pageToRender);
-    UI.renderPage(page, RENDER_OPTIONS);
-    toggleLoader(false);
+    UI.renderPage(page, RENDER_OPTIONS).then(() => {
+      toggleLoader(false);
+    });
   });
 }
 // handler for page number
-
+function setPageNumber() {
+  document.getElementById('currentPage').value = currentPage || 1;
+  document.getElementById('totalPages').innerText = NUM_PAGES;
+}
+setTimeout(setPageNumber, 400);
+initPageNumberHandler();
 function initPageNumberHandler() {
-  function setPageNumber() {
-    document.getElementById('currentPage').value = currentPage || 1;
-    document.getElementById('totalPages').innerText = NUM_PAGES;
-  }
-  function handleKeyPress(e) {
-    let key = e.keyCode || e.which;
-    if (key === 13) {
-      let pageToGo = parseInt(e.target.value);
-      if (pageToGo > 0 && pageToGo <= NUM_PAGES && typeof pageToGo === 'number') {
-        currentPage = pageToGo;
-        render(currentPage);
-      }
-      setPageNumber();
-    }
-  }
-  setTimeout(setPageNumber, 200);
   document.getElementById('next').addEventListener('click', (event) => {
     if (currentPage < NUM_PAGES) {
+      toggleLoader(true);
       currentPage += 1;
       render(currentPage);
       setPageNumber();
+      setTimeout(toggleLoader(false), 100);
     }
   });
   document.getElementById('prev').addEventListener('click', (event) => {
     if (currentPage > 1) {
+      toggleLoader(true);
       currentPage -= 1;
       render(currentPage);
       setPageNumber();
+      setTimeout(toggleLoader(false), 400);
     }
   });
-
-  // document.getElementById('content-wrapper').addEventListener('scroll', handlePageNumber);
-  // document.getElementById('content-wrapper').addEventListener('touchmove', handlePageNumber);
-  document.getElementById('currentPage').addEventListener('keypress', handleKeyPress);
-  // document.addEventListener('touchmove', handlePageNumber);
 }
 
 // touch mapper function
@@ -455,6 +440,19 @@ function initPenWrapper() {
       setActiveToolbarItem(e.currentTarget.getAttribute('data-tool-type'), e.currentTarget);
     }
   }
+  let nav = document.querySelector('.more-buttons');
+  let win = document.querySelector('#longPress');
+  let closeButton = document.querySelector('.close-button');
+  win.addEventListener('click', (event) => {
+    nav.classList.add('show');
+    let el = document.querySelector('button[data-tool-type="draw"]');
+    setActiveToolbarItem('draw', el);
+  });
+
+  closeButton.addEventListener('click', (event) => {
+    nav.classList.remove('show');
+    nav.removeAttribute('style');
+  });
   document.querySelectorAll('button[data-tool-type]').forEach(item => {
     item.addEventListener('click', event => {
       // handle click
@@ -748,7 +746,6 @@ function initBookMarks(document, window) {
 
 // scale rotate functions
 function initScaleRotate() {
-  console.log('Global scale is ==> ', globalScale);
   let scaleEle = document.getElementById('scaleSelect');
   scaleEle.value = RENDER_OPTIONS.scale;
   function setScaleRotate(scale, rotate) {
@@ -758,17 +755,18 @@ function initScaleRotate() {
     if (RENDER_OPTIONS.scale !== scale || RENDER_OPTIONS.rotate !== rotate) {
       RENDER_OPTIONS.scale = scale;
       RENDER_OPTIONS.rotate = rotate;
-
       localStorage.setItem(`${RENDER_OPTIONS.documentId}/scale`, RENDER_OPTIONS.scale);
       localStorage.setItem(`${RENDER_OPTIONS.documentId}/rotate`, RENDER_OPTIONS.rotate % 360);
-      render(1);
+      render(currentPage);
     }
-    isScaleChanged = true;
   }
 
   function handleScaleChange(e) {
     let scaleValue = e.currentTarget.value;
     if (parseFloat(scaleValue)) {
+      if ((parseFloat(scaleValue) === 99)) {
+        scaleValue = ACTUAL_SCALE;
+      }
       setScaleRotate(parseFloat(scaleValue), RENDER_OPTIONS.rotate);
     }
   }
@@ -781,25 +779,19 @@ function initScaleRotate() {
   let nextButton = document.getElementById('next');
   let prevButton = document.getElementById('prev');
 
-  // let nav = document.querySelector('.more-buttons');
-  // let win = document.querySelector('#longPress');
-  // let closeButton = document.querySelector('.close-button');
-  //
-  // win.addEventListener('click', (event) => {
-  //   nav.classList += 'show';
-  // });
-  //
-  // closeButton.addEventListener('click', () => {
-  //   nav.classList.remove('show');
-  //   nav.removeAttr('style');
-  // });
   function handleKeyPress(e) {
-    if (document.activeElement.tagName === 'SELECT') {
-      return;
-    }
-    console.log('Keypress called');
     let key = e.keyCode || e.which;
     switch (key) {
+      case 13:
+        if (document.activeElement.tagName === 'INPUT') {
+          let pageToGo = parseInt(e.target.value);
+          if (pageToGo > 0 && pageToGo <= NUM_PAGES && typeof pageToGo === 'number') {
+            currentPage = pageToGo;
+            render(currentPage);
+          }
+          setPageNumber();
+        }
+        break;
       case 37:
         prevButton.click();
         break;

@@ -16,8 +16,8 @@
 	<link rel="stylesheet" type="text/css" href="resources/styles/loader.css"/>
 </head>
 <body id="body">
-<a id="prev" class="prev"><img src="resources/img/icons/down-angle-color.svg" alt="Prev" title="previous"/></a>
-<a id="next" class="next"><img src="resources/img/icons/down-angle-color.svg" alt="Next" title="Next"/></a>
+<a id="prev" title="Previous Page" class="prev"><img src="resources/img/icons/down-angle-color.svg" alt="Prev" title="previous"/></a>
+<a id="next" class="next" title="Next Page"><img src="resources/img/icons/down-angle-color.svg" alt="Next" title="Next"/></a>
 <!--loader section -->
 <div id="loader" class='loader'>
 	<div class="overlay"></div>
@@ -34,7 +34,7 @@
 	<div class="table-content-header">
 		<div class="container-fluid full-container">
 			<div style="display: inline-block;float: right;">
-					<select id="scaleSelect" class="form-control" style="height: 44px;">
+					<select id="scaleSelect" title="Zoom" class="form-control" style="height: 44px;">
 						<option value="0.33">33%</option>
 						<option value="0.50">50%</option>
 						<option value="0.65">65%</option>
@@ -43,7 +43,7 @@
 						<option value="1.33">130%</option>
 						<option value="1.5">150%</option>
 						<option value="2">200%</option>
-						<option value="1">Actual Page</option>
+						<option value="99">Actual Page</option>
 					</select>
 			</div>
 			<div style="display: inline-block;float: right;">
@@ -56,7 +56,7 @@
 	<div class="body-middle body-overflow">
 		<div class="table-content-section h-100">
 			<div class="container-fluid full-container">
-				<button  id="saveButton" type="button" class="btn btn-small content-back-btn">
+				<button  id="saveButton" type="button" class="btn btn-small content-back-btn" title="Save">
 					<span class="arrow-button arrow-button-static">
 						<img src="resources/img/icons/save.svg" alt=""/>
 					</span>
@@ -139,13 +139,6 @@
 				            </span>
 									</button>
 							</li>
-<!--							<li>-->
-<!--									<button class="btn btn-small" data-tool-type="highlight">-->
-<!--				            <span class="arrow-button arrow-button-static ">-->
-<!--				                <img src="resources/img/icons/strikethrough.svg" alt=""/>-->
-<!--				            </span>-->
-<!--									</button>-->
-<!--							</li>-->
 							<li class="dropup more-effect">
 								<button class="btn btn-small" data-toggle="dropdown">
                   <span class="arrow-button arrow-button-static">
@@ -298,16 +291,16 @@
 			$(".search-content").slideUp().removeClass('searchShow');
 		});
 
-		$nav = $('.more-buttons');
-		$win = $('#longPress');
-
-		$win.click(function (e) {
-			$nav.addClass('show');
-		});
-
-		$('.close-button').click(function (e) {
-			$nav.removeClass('show').removeAttr('style');
-		});
+		// $nav = $('.more-buttons');
+		// $win = $('#longPress');
+		//
+		// $win.click(function (e) {
+		// 	$nav.addClass('show');
+		// });
+		//
+		// $('.close-button').click(function (e) {
+		// 	$nav.removeClass('show').removeAttr('style');
+		// });
 	});
 </script>
 </body>
