@@ -205,6 +205,7 @@ function render(page) {
     UI.renderPage(page, RENDER_OPTIONS).then(() => {
       toggleLoader(false);
     });
+    setPageNumber();
   });
 }
 // handler for page number
@@ -213,6 +214,7 @@ function setPageNumber() {
   document.getElementById('totalPages').innerText = NUM_PAGES;
 }
 setTimeout(setPageNumber, 400);
+
 initPageNumberHandler();
 function initPageNumberHandler() {
   document.getElementById('next').addEventListener('click', (event) => {
@@ -500,7 +502,8 @@ function initBookMarks(document, window) {
       a.textContent = `${bookmark.text}`;
       a.dataset.page = page;
       a.onclick = function(e) {
-        document.getElementById(`pageContainer${page}`).scrollIntoView(true);
+        currentPage = page;
+        render(page);
       };
       let button = document.createElement('button');
       button.className = 'btn';
@@ -655,7 +658,6 @@ function initBookMarks(document, window) {
   }
   function updateSearchCounterDisplay(flag) {
     if (flag === 'noresult') {
-      // document.getElementById('find-pdf-count').innerText = '0 Results';
       document.getElementById('currentItemLabel').innerText = 0;
       document.getElementById('allItemLabel').innerText = 0;
     }
@@ -746,8 +748,9 @@ function initBookMarks(document, window) {
 
 // scale rotate functions
 function initScaleRotate() {
-  let scaleEle = document.getElementById('scaleSelect');
-  scaleEle.value = RENDER_OPTIONS.scale;
+  let scaleEle = document.getElementById('scaleDropDown');
+  scaleEle.textContent = RENDER_OPTIONS.scale * 100 + '%';
+
   function setScaleRotate(scale, rotate) {
     scale = parseFloat(scale, 10);
     rotate = parseInt(rotate, 10);
@@ -762,15 +765,38 @@ function initScaleRotate() {
   }
 
   function handleScaleChange(e) {
-    let scaleValue = e.currentTarget.value;
+    let target = e.currentTarget;
+    let scaleValue = target.getAttribute('data-value');
     if (parseFloat(scaleValue)) {
       if ((parseFloat(scaleValue) === 99)) {
         scaleValue = ACTUAL_SCALE;
       }
       setScaleRotate(parseFloat(scaleValue), RENDER_OPTIONS.rotate);
+      document.getElementById('scaleDropDown').textContent = target.text;
     }
   }
-  document.getElementById('scaleSelect').addEventListener('change', handleScaleChange);
+
+  // javascript for dropdown
+  document.getElementById('scaleDropDown').addEventListener('click', (event) => {
+    document.getElementById('myDropdown').classList.toggle('show');
+  });
+  // Close the dropdown if the user clicks outside of it
+  document.addEventListener('click', (event) => {
+    if (!event.target.matches('.dropbtn')) {
+      let dropdowns = document.getElementsByClassName('dropdown-content');
+      let i;
+      for (i = 0; i < dropdowns.length; i++) {
+        let openDropdown = dropdowns[i];
+        if (openDropdown.classList.contains('show')) {
+          openDropdown.classList.remove('show');
+        }
+      }
+    }
+  });
+  // javascript for dropdown end
+  document.querySelectorAll('.scale-values').forEach((el) => {
+    el.addEventListener('click', handleScaleChange);
+  });
 }
 
 // attacg all key handlers
@@ -802,3 +828,5 @@ function initScaleRotate() {
   }
   document.addEventListener('keyup', handleKeyPress);
 })();
+
+
