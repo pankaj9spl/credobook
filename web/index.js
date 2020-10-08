@@ -46,14 +46,18 @@ function toggleLoader(flag) {
   }
 }
 
-document.clearResource = function() {
-  document.querySelectorAll('canvas').forEach((item) => {
+
+
+
+document.clearResource = async function() {
+  await  document.querySelectorAll('canvas').forEach((item) => {
     let context = item.getContext('2d');
     context.clearRect(0, 0, item.width, item.height);
     item.height = 0;
     item.width = 0;
     item.style.width = 0;
     item.style.height = 0;
+    console.log("canvas cleared")
   });
 };
 
@@ -194,6 +198,8 @@ function render(page) {
     });
   }
   // load the doc from cache
+  document.clearResource()
+  debugger;
   return new Promise(function( resolve, reject) {
     loadingTask.then((pdf) => {
       RENDER_OPTIONS.pdfDocument = pdf;
@@ -807,6 +813,7 @@ function initScaleRotate() {
   let prevButton = document.getElementById('prev');
 
   function handleKeyPress(e) {
+    console.log("Key pressed is ", e.keyCode)
     let key = e.keyCode || e.which;
     switch (key) {
       case 13:
