@@ -620,7 +620,6 @@ function initBookMarks(document, window) {
   // global variable for search state
   let inputHolder = document.querySelector('.table-input');
   let currentIndex = 0;
-  let previousIndex = 0;
   let searchMeta = [];
   let lastSearchString = null;
 
@@ -689,23 +688,23 @@ function initBookMarks(document, window) {
       lastSearchString = searchString;
       searchMeta = await searchMeta.sort((a, b) => {return a.page - b.page;});
     }
-    updateSearchCounterDisplay(!searchMeta.length || false, currentIndex)
     return searchMeta
   }
 
   async function findNextOccurance() {
-    currentIndex += 1;
+     currentIndex += 1;
     if (currentIndex > searchMeta.length) {currentIndex = 1}
     let result =  await queryPdf(inputHolder.value, false);
-    if (result.length && currentIndex <= NUM_PAGES) {
+    if (result.length && currentIndex <= result.length) {
       try {
-        if (result[currentIndex]) {
-          await render(currentIndex);
+        if (result[currentIndex - 1]) {
+          await render(result[currentIndex - 1].page);
           findByTextContent(inputHolder.value, 'span', false).forEach((el) => {
               let re = new RegExp(inputHolder.value, 'g');
               el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
           });
         }
+        updateSearchCounterDisplay(!searchMeta.length || false, currentIndex)
       } catch (e) {
         console.log('Skipping the page number as no result found')
       }
@@ -713,17 +712,20 @@ function initBookMarks(document, window) {
   }
   async function findPrevOccurance() {
     currentIndex -= 1;
-    if (currentIndex < 1) {currentIndex = searchMeta.length}
+    console.log(currentIndex)
     let result =  await queryPdf(inputHolder.value, false);
-    if (result.length && currentIndex <= NUM_PAGES) {
+    if (currentIndex <= 0) {currentIndex = searchMeta.length}
+
+    if (result.length && currentIndex <= result.length) {
       try {
-        if (result[currentIndex]) {
-          await render(currentIndex);
+        if (result[currentIndex - 1]) {
+          await render(result[currentIndex - 1].page);
           findByTextContent(inputHolder.value, 'span', false).forEach((el) => {
               let re = new RegExp(inputHolder.value, 'g');
               el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
           });
         }
+        updateSearchCounterDisplay(!searchMeta.length || false, currentIndex)
       } catch (e) {
         console.log('Skipping the page number as no result found')
       }
@@ -738,7 +740,7 @@ function initBookMarks(document, window) {
 
   document.querySelector('.close-search').addEventListener('click', function(e) {
     resetSearch();
-    currentIndex = -1;
+    currentIndex = 0;
     inputHolder.value = '';
   });
   document.getElementById('searchNext').addEventListener('click', findNextOccurance);
