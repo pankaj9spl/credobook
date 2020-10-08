@@ -3,6 +3,7 @@ import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
 import * as crypto from 'crypto';
+import regeneratorRuntime from "regenerator-runtime";
 
 let toolType;
 let documentId;
@@ -11,7 +12,6 @@ let devicePlateform;
 let NUM_PAGES = 0;
 let PASSWORD;
 let PDF_DOC;
-let PAGE_HEIGHT;
 let ACTUAL_SCALE = 0.65;
 let globalScale = parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65;
 let RENDER_OPTIONS = {
@@ -194,18 +194,22 @@ function render(page) {
     });
   }
   // load the doc from cache
-  loadingTask.then((pdf) => {
-    RENDER_OPTIONS.pdfDocument = pdf;
-    PDF_DOC = pdf;
-    let viewer = document.getElementById('viewer');
-    viewer.innerHTML = '';
-    NUM_PAGES = pdf.numPages;
-    let pageToRender = UI.createPage(page);
-    viewer.appendChild(pageToRender);
-    UI.renderPage(page, RENDER_OPTIONS).then(() => {
-      toggleLoader(false);
+  return new Promise(function( resolve, reject) {
+    loadingTask.then((pdf) => {
+      RENDER_OPTIONS.pdfDocument = pdf;
+      PDF_DOC = pdf;
+      let viewer = document.getElementById('viewer');
+      viewer.innerHTML = '';
+      NUM_PAGES = pdf.numPages;
+      let pageToRender = UI.createPage(page);
+      viewer.appendChild(pageToRender);
+      UI.renderPage(page, RENDER_OPTIONS).then(() => {
+        toggleLoader(false);
+        resolve(true)
+      });
+      currentPage = page;
+      setPageNumber();
     });
-    setPageNumber();
   });
 }
 // handler for page number
@@ -614,10 +618,23 @@ function initBookMarks(document, window) {
 // Search Handler
 (function(document, window) {
   // global variable for search state
-  let searchResults = [];
   let inputHolder = document.querySelector('.table-input');
-  let currentIndex = -1;
+  let currentIndex = 0;
   let previousIndex = 0;
+  let searchMeta = [];
+  let lastSearchString = null;
+
+  function updateSearchCounterDisplay(noResult, page) {
+    if (noResult) {
+      document.getElementById('currentItemLabel').innerText = 0;
+      document.getElementById('allItemLabel').innerText = 0;
+    }
+    else {
+      document.getElementById('currentItemLabel').innerText = page;
+      // document.getElementById('allItemLabel').innerText = searchMeta.reduce((prev,next) => prev + next.count,0);
+      document.getElementById('allItemLabel').innerText = searchMeta.length;
+    }
+  }
 
   function findByTextContent(needle, haystack, precise) {
   // needle: String, the string to be found within the elements.
@@ -626,121 +643,103 @@ function initBookMarks(document, window) {
   // precise: Boolean, true - searches for that precise string, surrounded by
   //                          word-breaks,
   //                   false - searches for the string occurring anywhere
-    let elems;
-    // no haystack we quit here, to avoid having to search
-    // the entire document:
-    if (!haystack) {
-      return false;
-    }
-    // if haystack is a string, we pass it to document.querySelectorAll(),
-    // and turn the results into an Array:
-    else if (typeof haystack === 'string') {
-      elems = [].slice.call(document.querySelectorAll(haystack), 0);
-    }
-    // if haystack has a length property, we convert it to an Array
-    // (if it's already an array, this is pointless, but not harmful):
-    else if (haystack.length) {
-      elems = [].slice.call(haystack, 0);
-    }
+  var elems;
 
-    // work out whether we're looking at innerText (IE), or textContent
-    // (in most other browsers)
-    let textProp = 'textContent' in document ? 'textContent' : 'innerText';
+  // no haystack we quit here, to avoid having to search
+  // the entire document:
+  if (!haystack) {
+    return false;
+  }
+  // if haystack is a string, we pass it to document.querySelectorAll(),
+  // and turn the results into an Array:
+  else if ('string' == typeof haystack) {
+    elems = [].slice.call(document.querySelectorAll(haystack), 0);
+  }
+  // if haystack has a length property, we convert it to an Array
+  // (if it's already an array, this is pointless, but not harmful):
+  else if (haystack.length) {
+    elems = [].slice.call(haystack, 0);
+  }
+
+  // work out whether we're looking at innerText (IE), or textContent
+  // (in most other browsers)
+  var textProp = 'textContent' in document ? 'textContent' : 'innerText',
     // creating a regex depending on whether we want a precise match, or not:
-    let reg = precise === true ? new RegExp('\\b' + needle + '\\b') : new RegExp(needle);
+    reg = precise === true ? new RegExp('\\b' + needle + '\\b') : new RegExp(needle),
     // iterating over the elems array:
-    let found = elems.filter(function(el) {
+    found = elems.filter(function(el) {
       // returning the elements in which the text is, or includes,
       // the needle to be found:
       return reg.test(el[textProp]);
     });
-    return found.length ? found : false;
-  }
-  function updateSearchCounterDisplay(flag) {
-    if (flag === 'noresult') {
-      document.getElementById('currentItemLabel').innerText = 0;
-      document.getElementById('allItemLabel').innerText = 0;
+  return found.length ? found : false;
+}
+
+  async function queryPdf(searchString, precise = true) {
+    if (searchString !== lastSearchString) {
+      // creating a regex depending on whether we want a precise match, or not:
+      let reg = precise === true ? new RegExp('\\b' + searchString + '\\b') : new RegExp(searchString);
+
+      for (let i = 1; i <= NUM_PAGES; i++) {
+        let pagePromise = await PDF_DOC.getPage(i);
+        let pageText = await pagePromise.getTextContent({normalizeWhitespace: true})
+        let result = await pageText.items.filter((el) => reg.test(el.str));
+        if (result.length) {searchMeta.push({page: i, count: result.length})}
+      }
+      lastSearchString = searchString;
+      searchMeta = await searchMeta.sort((a, b) => {return a.page - b.page;});
     }
-    else {
-      document.getElementById('currentItemLabel').innerText = currentIndex + 1;
-      document.getElementById('allItemLabel').innerText = searchResults.length;
-    }
+    updateSearchCounterDisplay(!searchMeta.length || false, currentIndex)
+    return searchMeta
   }
-  function findNextOccurance() {
-    previousIndex = currentIndex;
+
+  async function findNextOccurance() {
     currentIndex += 1;
-
-    let prevele = searchResults[previousIndex];
-    if (prevele) {
-      prevele.innerHTML = prevele.textContent;
-    }
-    searchResults = findByTextContent(inputHolder.value, 'span', false);
-    if (searchResults) {
-      let nextResult = searchResults[currentIndex];
-      if (nextResult) {
-        nextResult.scrollIntoView(true);
-        let re = new RegExp(inputHolder.value, 'g');
-        nextResult.innerHTML = nextResult.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
-      }
-      else {
-        currentIndex = 0;
-        let nextResult = searchResults[currentIndex];
-        nextResult.scrollIntoView(true);
+    if (currentIndex > searchMeta.length) {currentIndex = 1}
+    let result =  await queryPdf(inputHolder.value, false);
+    if (result.length && currentIndex <= NUM_PAGES) {
+      try {
+        if (result[currentIndex]) {
+          await render(currentIndex);
+          findByTextContent(inputHolder.value, 'span', false).forEach((el) => {
+              let re = new RegExp(inputHolder.value, 'g');
+              el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
+          });
+        }
+      } catch (e) {
+        console.log('Skipping the page number as no result found')
       }
     }
-    else {
-      updateSearchCounterDisplay('noresult');
-      return;
-    }
-    updateSearchCounterDisplay();
   }
-  function findPrevOccurance() {
-    previousIndex = currentIndex; // 5
-    currentIndex -= 1; // 4
-
-    let prevele = searchResults[previousIndex];
-    if (prevele) {
-      prevele.innerHTML = prevele.textContent;
-    }
-    searchResults = findByTextContent(inputHolder.value, 'span', false);
-    // check if viewport rendering is changed after search is being made
-    if (searchResults) {
-      let nextResult = searchResults[currentIndex];
-      if (nextResult) {
-        nextResult.scrollIntoView(true);
-        let re = new RegExp(inputHolder.value, 'g');
-        nextResult.innerHTML = nextResult.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
-      }
-      else {
-        currentIndex = searchResults.length - 1;
-        let nextResult = searchResults[currentIndex];
-        nextResult.scrollIntoView(true);
+  async function findPrevOccurance() {
+    currentIndex -= 1;
+    if (currentIndex < 1) {currentIndex = searchMeta.length}
+    let result =  await queryPdf(inputHolder.value, false);
+    if (result.length && currentIndex <= NUM_PAGES) {
+      try {
+        if (result[currentIndex]) {
+          await render(currentIndex);
+          findByTextContent(inputHolder.value, 'span', false).forEach((el) => {
+              let re = new RegExp(inputHolder.value, 'g');
+              el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
+          });
+        }
+      } catch (e) {
+        console.log('Skipping the page number as no result found')
       }
     }
-    else {
-      updateSearchCounterDisplay('noresult');
-      return;
-    }
-    updateSearchCounterDisplay();
   }
-  function resetSearch(search) {
-    if (!search) {
-      return;
-    }
+  function resetSearch() {
+    let search = document.querySelectorAll('.search-highlight')
     search.forEach((el) => {
-      let spanToReplace = el.querySelector('.search-highlight');
-      if (spanToReplace) {
-        el.innerHTML = el.innerText;
-      }
+      el.parentNode.innerHTML = el.parentNode.textContent
     });
   }
 
   document.querySelector('.close-search').addEventListener('click', function(e) {
-    resetSearch(searchResults);
-    searchResults = [];
+    resetSearch();
     currentIndex = -1;
     inputHolder.value = '';
-    updateSearchCounterDisplay();
   });
   document.getElementById('searchNext').addEventListener('click', findNextOccurance);
   document.getElementById('searchPrev').addEventListener('click', findPrevOccurance);
@@ -828,5 +827,3 @@ function initScaleRotate() {
   }
   document.addEventListener('keyup', handleKeyPress);
 })();
-
-
