@@ -19,7 +19,7 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 .search-highlight {
-    background: #e46657;
+    background: #ffff00;
 }
 /*.pdfViewer .canvasWrapper {*/
 /*    box-shadow: 0 0 3px #bbb;*/
@@ -86,6 +86,10 @@ input[type=number] {
     text-align: center !important;
 }
 
+.textLayer {
+    opacity: 0.5 !important;
+
+}
 #currentPage:focus {
     background-color: #fff;
     border: 1px solid #c4c4c4;
@@ -194,8 +198,7 @@ h1 {
     right: 10px;
     line-height: 40px;
 }
-
-.dropbtn:focus::after  {
+.dropbtn.top-ar::after  {
     border-bottom: 5px dashed;
     border-right: 5px solid transparent;
     border-left: 5px solid transparent;
@@ -287,3 +290,9 @@ h1 {
     border-right: 10px solid transparent;
     border-left: 10px solid transparent;
 }
+.search-content .next-prev-search {
+    height: 100%;
+  }
+  .search-content .next-prev-search button{
+    height: inherit;
+  }

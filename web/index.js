@@ -661,13 +661,14 @@ function initBookMarks(document, window) {
   // (in most other browsers)
   var textProp = 'textContent' in document ? 'textContent' : 'innerText',
     // creating a regex depending on whether we want a precise match, or not:
-    reg = precise === true ? new RegExp('\\b' + needle + '\\b') : new RegExp(needle),
-    // iterating over the elems array:
+    reg  = new RegExp(needle, 'i'),
+      // iterating over the elems array:
     found = elems.filter(function(el) {
       // returning the elements in which the text is, or includes,
       // the needle to be found:
       return reg.test(el[textProp]);
     });
+  debugger;
   return found.length ? found : false;
 }
 
@@ -676,8 +677,8 @@ function initBookMarks(document, window) {
     toggleLoader(true)
     let searchStack = [];
     // creating a regex depending on whether we want a precise match, or not:
-    let reg = precise === true ? new RegExp('\\b' + searchString + '\\b') : new RegExp(searchString);
-
+    let reg = new RegExp(searchString, "i");
+    debugger;
     for (let i = 1; i <= NUM_PAGES; i++) {
       let pagePromise = await PDF_DOC.getPage(i);
       let pageText = await pagePromise.getTextContent({normalizeWhitespace: true})
@@ -712,7 +713,7 @@ function initBookMarks(document, window) {
         if (searchMeta[currentIndex - 1]) {
           await render(searchMeta[currentIndex - 1].page);
           findByTextContent(inputHolder.value.trim(), 'span', false).forEach((el) => {
-              let re = new RegExp(inputHolder.value.trim(), 'g');
+              let re = new RegExp(inputHolder.value.trim(), 'i');
               el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
           });
         }
@@ -727,7 +728,6 @@ function initBookMarks(document, window) {
   }
 
   async function findPrevOccurance() {
-    debugger;
     if (!checkString(inputHolder.value)) {
       searchMeta = [];
       updateSearchCounterDisplay(true, 0);
@@ -744,7 +744,7 @@ function initBookMarks(document, window) {
         if (searchMeta[currentIndex - 1]) {
           await render(searchMeta[currentIndex - 1].page);
           findByTextContent(inputHolder.value, 'span', false).forEach((el) => {
-              let re = new RegExp(inputHolder.value, 'g');
+              let re = new RegExp(inputHolder.value.trim(), 'i');
               el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
           });
         }
