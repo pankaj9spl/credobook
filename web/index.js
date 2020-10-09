@@ -198,8 +198,7 @@ function render(page) {
     });
   }
   // load the doc from cache
-  document.clearResource()
-  debugger;
+  document.clearResource();
   return new Promise(function( resolve, reject) {
     loadingTask.then((pdf) => {
       RENDER_OPTIONS.pdfDocument = pdf;
@@ -681,6 +680,7 @@ function initBookMarks(document, window) {
 }
 
   async function queryPdf(searchString, precise = true) {
+    toggleLoader(true)
     if (searchString !== lastSearchString) {
       // creating a regex depending on whether we want a precise match, or not:
       let reg = precise === true ? new RegExp('\\b' + searchString + '\\b') : new RegExp(searchString);
@@ -694,6 +694,7 @@ function initBookMarks(document, window) {
       lastSearchString = searchString;
       searchMeta = await searchMeta.sort((a, b) => {return a.page - b.page;});
     }
+    toggleLoader(false)
     return searchMeta
   }
 
