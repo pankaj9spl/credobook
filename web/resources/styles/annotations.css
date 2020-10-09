@@ -73,8 +73,8 @@ input[type=number] {
 }
 
 #currentPage, #totalPages{
-  padding: 5px 0;
-    margin: 9px 0 7px 0;
+    padding: 5px 0;
+    margin: 3px 0px;
     border: 1px solid transparent;
     min-width: 33px;
     display: inline-block;
@@ -171,16 +171,39 @@ h1 {
 /*dropdown css*/
 
 .dropbtn {
-  background-color: #dc3823;
+  background: -webkit-gradient(linear, left top, right top, from(#de252f), to(#e56b5a));
+  background: linear-gradient(to right, #de252f 0%, #e56b5a 100%);
+  border: 1px solid #C02632 !important;
   color: white;
-  padding: 16px;
+  padding: 8px 16px;
   font-size: 16px;
   border: none;
   cursor: pointer;
+  min-width: 130px;
+}
+.dropbtn::after  {
+    width: 0;
+    height: 0;
+    border-top: 5px dashed;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    content: "";
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 10px;
+    line-height: 40px;
+}
+
+.dropbtn:focus::after  {
+    border-bottom: 5px dashed;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    border-top: none;
 }
 
 .dropbtn:hover, .dropbtn:focus {
-  background-color: #2980B9;
+    background-color: #dc3823;
 }
 
 .dropdown {
@@ -192,10 +215,11 @@ h1 {
   display: none;
   position: absolute;
   background-color: #f1f1f1;
-  min-width: 160px;
+  min-width: 130px;
   overflow: auto;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
+  right: 0;
 }
 
 .dropdown-content a {
@@ -208,3 +232,58 @@ h1 {
 .dropdown a:hover {background-color: #d035279e;}
 
 .show {display: block;}
+
+
+.bookmark-section .card .card-body {
+    padding: 0 30px 20px 15px !important;
+  }
+
+  .bookmark-section .card .card-header {
+    padding: 0 30px 20px 15px !important;
+  }
+
+  .bookmark-section {
+    height: calc(100% - 82px) !important;
+  }
+
+  @media (max-width: 450px) {
+    .search-content .table-input {
+      padding-right: 160px !important;
+    }
+  }
+
+  @media (max-width: 355px){
+    .content-back-btn {
+        left: 5px;
+    }
+    .fixed-icons {
+        width: 255px;
+    }
+    .fixed-icons {
+        right: 5px;
+    }
+    .fixed-icons li {
+        display: inline-block;
+        margin: 6px 0px;
+    }
+}
+
+
+.caret {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    vertical-align: middle;
+    border-color: #58595B;
+}
+.search-content .nextbtn .caret{
+    border-top: 10px dashed #58595B;
+    border-right: 10px solid transparent;
+    border-left: 10px solid transparent;
+}
+.search-content .prevbtn .caret{
+    margin-left: 2px;
+    border-bottom: 10px dashed #58595B;
+    border-right: 10px solid transparent;
+    border-left: 10px solid transparent;
+}

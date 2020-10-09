@@ -35,7 +35,7 @@
 		<div class="container-fluid full-container">
 			<div style="display: inline-block;float: right;">
 				<div class="dropdown">
-				  <button  id="scaleDropDown" class="dropbtn">Scale</button>
+				  <button  id="scaleDropDown" class="dropbtn">Scale <span class="caret"></span></button>
 					  <div id="myDropdown" class="dropdown-content">
 						  <a class="scale-values" href="javascript://" data-value="0.33">33%</a>
 							<a class="scale-values" href="javascript://" data-value="0.50">50%</a>
@@ -69,9 +69,15 @@
 					<div class="find-pdf-count" id="find-pdf-count">
 						<label id="currentItemLabel"></label> / <label id="allItemLabel"></label>
 					</div>
-					<div class="next-prev-search">
-						<button id="searchPrev" class="btn prevbtn" type="button"><img src="resources/img/icons/down-angle.svg" alt=""/></button>
-						<button id="searchNext" class="btn nextbtn" type="button"><img src="resources/img/icons/down-angle.svg" alt=""/></button>
+					<div class="next-prev-search pl-2">
+						<button id="searchPrev" class="btn prevbtn" type="button">
+							<!-- <img src="resources/img/icons/down-angle.svg" alt=""/> -->
+							<span class="caret"></span>
+						</button>
+						<button id="searchNext" class="btn nextbtn" type="button">
+							<!-- <img src="resources/img/icons/down-angle.svg" alt=""/> -->
+							<span class="caret"></span>
+						</button>
 					</div>
 					<button class="btn btn-small close-search">
 						<span class="arrow-button "><img src="resources/img/icons/close-sm.svg" alt=""/></span>
@@ -239,7 +245,7 @@
 						</div>
 					</form>
 					<div class="text-center popup-button">
-						<button id="bookmark-button" class="btn btn-confirm" type="submit">Save</button>
+						<button id="bookmark-button" class="btn btn-confirm" type="submit" data-dismiss="modal">Save</button>
 						<button class="btn btn-cancel" data-dismiss="modal">Cancel</button>
 					</div>
 				</div>

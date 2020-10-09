@@ -46,9 +46,6 @@ function toggleLoader(flag) {
   }
 }
 
-
-
-
 document.clearResource = async function() {
   await  document.querySelectorAll('canvas').forEach((item) => {
     let context = item.getContext('2d');
@@ -532,15 +529,12 @@ function initBookMarks(document, window) {
     });
     return div;
   }
-
   function getBookMarks() {
     return JSON.parse(localStorage.getItem(`${RENDER_OPTIONS.documentId}/bookmarks`)) || [];
   }
-
   function setBookMarks(bookMarks) {
     localStorage.setItem(`${RENDER_OPTIONS.documentId}/bookmarks`, JSON.stringify(bookMarks));
   }
-
   function addBookMark(text, pageNumber) {
     let bookMarks = getBookMarks();
     bookMarks.push({type: 'bookmark', class: 'Bookmarks', text: text, page: pageNumber, uuid: uuid()});
@@ -592,7 +586,6 @@ function initBookMarks(document, window) {
     }
     checkAndDisableDraw(false);
   }
-
   function checkAndDisableDraw(flag) {
     let tooltype = localStorage.getItem(`${RENDER_OPTIONS.documentId}/tooltype`) || 'cursor';
     if (tooltype === 'draw') {
@@ -635,12 +628,11 @@ function initBookMarks(document, window) {
     }
     else {
       document.getElementById('currentItemLabel').innerText = page;
-      // document.getElementById('allItemLabel').innerText = searchMeta.reduce((prev,next) => prev + next.count,0);
       document.getElementById('allItemLabel').innerText = searchMeta.length;
     }
   }
 
-  function findByTextContent(needle, haystack, precise) {
+  function findByTextContent(needle, haystack, precise=false) {
   // needle: String, the string to be found within the elements.
   // haystack: String, a selector to be passed to document.querySelectorAll(),
   //           NodeList, Array - to be iterated over within the function:
@@ -679,54 +671,78 @@ function initBookMarks(document, window) {
   return found.length ? found : false;
 }
 
-  async function queryPdf(searchString, precise = true) {
+  async function queryPdf(searchString, precise = false) {
+    console.log('queryPDF called !!!!')
     toggleLoader(true)
-    if (searchString !== lastSearchString) {
-      // creating a regex depending on whether we want a precise match, or not:
-      let reg = precise === true ? new RegExp('\\b' + searchString + '\\b') : new RegExp(searchString);
+    let searchStack = [];
+    // creating a regex depending on whether we want a precise match, or not:
+    let reg = precise === true ? new RegExp('\\b' + searchString + '\\b') : new RegExp(searchString);
 
-      for (let i = 1; i <= NUM_PAGES; i++) {
-        let pagePromise = await PDF_DOC.getPage(i);
-        let pageText = await pagePromise.getTextContent({normalizeWhitespace: true})
-        let result = await pageText.items.filter((el) => reg.test(el.str));
-        if (result.length) {searchMeta.push({page: i, count: result.length})}
-      }
-      lastSearchString = searchString;
-      searchMeta = await searchMeta.sort((a, b) => {return a.page - b.page;});
+    for (let i = 1; i <= NUM_PAGES; i++) {
+      let pagePromise = await PDF_DOC.getPage(i);
+      let pageText = await pagePromise.getTextContent({normalizeWhitespace: true})
+      let result = await pageText.items.filter((el) => reg.test(el.str));
+      if (result.length) {searchStack.push({page: i, count: result.length})}
     }
+    lastSearchString = searchString;
+    await searchStack.sort((a, b) => {return a.page - b.page;});
     toggleLoader(false)
-    return searchMeta
+    return searchStack
+  }
+
+  function checkString(queryString) {
+    return !!queryString.trim();
   }
 
   async function findNextOccurance() {
-     currentIndex += 1;
+    if (!checkString(inputHolder.value)) {
+      searchMeta = [];
+      updateSearchCounterDisplay(true, 0);
+      return;
+    }
+    if (inputHolder.value.trim() !== lastSearchString) {
+      searchMeta = await queryPdf(inputHolder.value.trim(), false)
+      lastSearchString = inputHolder.value.trim();
+    }
+    currentIndex += 1;
     if (currentIndex > searchMeta.length) {currentIndex = 1}
-    let result =  await queryPdf(inputHolder.value, false);
-    if (result.length && currentIndex <= result.length) {
-      try {
-        if (result[currentIndex - 1]) {
-          await render(result[currentIndex - 1].page);
-          findByTextContent(inputHolder.value, 'span', false).forEach((el) => {
-              let re = new RegExp(inputHolder.value, 'g');
-              el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
-          });
-        }
-        updateSearchCounterDisplay(!searchMeta.length || false, currentIndex)
-      } catch (e) {
-        console.log('Skipping the page number as no result found')
-      }
-    }
-  }
-  async function findPrevOccurance() {
-    currentIndex -= 1;
-    console.log(currentIndex)
-    let result =  await queryPdf(inputHolder.value, false);
-    if (currentIndex <= 0) {currentIndex = searchMeta.length}
 
-    if (result.length && currentIndex <= result.length) {
+    if (searchMeta.length) {
       try {
-        if (result[currentIndex - 1]) {
-          await render(result[currentIndex - 1].page);
+        if (searchMeta[currentIndex - 1]) {
+          await render(searchMeta[currentIndex - 1].page);
+          findByTextContent(inputHolder.value.trim(), 'span', false).forEach((el) => {
+              let re = new RegExp(inputHolder.value.trim(), 'g');
+              el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
+          });
+        }
+        updateSearchCounterDisplay(false, currentIndex)
+      } catch (e) {
+        console.error('error  occured', e);
+        console.log('Skipping the page number as no result found')
+      }
+      return;
+    }
+    updateSearchCounterDisplay(true, 0)
+  }
+
+  async function findPrevOccurance() {
+    debugger;
+    if (!checkString(inputHolder.value)) {
+      searchMeta = [];
+      updateSearchCounterDisplay(true, 0);
+      return;
+    }
+    if (inputHolder.value.trim() !== lastSearchString) {
+      searchMeta = await queryPdf(inputHolder.value.trim(), false)
+      lastSearchString = inputHolder.value.trim();
+    }
+    currentIndex -= 1;
+    if (currentIndex <= 0) {currentIndex = searchMeta.length}
+    if (searchMeta.length) {
+      try {
+        if (searchMeta[currentIndex - 1]) {
+          await render(searchMeta[currentIndex - 1].page);
           findByTextContent(inputHolder.value, 'span', false).forEach((el) => {
               let re = new RegExp(inputHolder.value, 'g');
               el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
@@ -736,8 +752,11 @@ function initBookMarks(document, window) {
       } catch (e) {
         console.log('Skipping the page number as no result found')
       }
+      return;
     }
+    updateSearchCounterDisplay(true, 0)
   }
+
   function resetSearch() {
     let search = document.querySelectorAll('.search-highlight')
     search.forEach((el) => {
@@ -749,6 +768,10 @@ function initBookMarks(document, window) {
     resetSearch();
     currentIndex = 0;
     inputHolder.value = '';
+    lastSearchString = null;
+    searchMeta = [];
+    document.getElementById('currentItemLabel').innerText = '';
+    document.getElementById('allItemLabel').innerText = '';
   });
   document.getElementById('searchNext').addEventListener('click', findNextOccurance);
   document.getElementById('searchPrev').addEventListener('click', findPrevOccurance);
