@@ -172,7 +172,14 @@ function getPdfId() {
     }, 1000);
   }
   else {
-    render(1);
+    debugger;
+    let lastPage = localStorage.getItem(`${RENDER_OPTIONS.documentId}/page`)
+    if (parseInt(lastPage, 10)) {
+      render(parseInt(lastPage, 10))
+    }
+    else {
+      render(1);
+    }
   }
 }
 getPdfId();
@@ -210,6 +217,7 @@ function render(page) {
         resolve(true)
       });
       currentPage = page;
+      localStorage.setItem(`${RENDER_OPTIONS.documentId}/page`, currentPage)
       setPageNumber();
     });
   });
