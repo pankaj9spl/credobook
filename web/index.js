@@ -172,7 +172,6 @@ function getPdfId() {
     }, 1000);
   }
   else {
-    debugger;
     let lastPage = localStorage.getItem(`${RENDER_OPTIONS.documentId}/page`)
     if (parseInt(lastPage, 10)) {
       render(parseInt(lastPage, 10))
@@ -676,7 +675,6 @@ function initBookMarks(document, window) {
       // the needle to be found:
       return reg.test(el[textProp]);
     });
-  debugger;
   return found.length ? found : false;
 }
 
@@ -686,7 +684,6 @@ function initBookMarks(document, window) {
     let searchStack = [];
     // creating a regex depending on whether we want a precise match, or not:
     let reg = new RegExp(searchString, "i");
-    debugger;
     for (let i = 1; i <= NUM_PAGES; i++) {
       let pagePromise = await PDF_DOC.getPage(i);
       let pageText = await pagePromise.getTextContent({normalizeWhitespace: true})
@@ -837,7 +834,6 @@ function initScaleRotate() {
     el.addEventListener('click', handleScaleChange);
   });
 }
-
 // attacg all key handlers
 (function keyBinder() {
   // define all handler
