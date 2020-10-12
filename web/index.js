@@ -218,6 +218,7 @@ function render(page) {
       currentPage = page;
       localStorage.setItem(`${RENDER_OPTIONS.documentId}/page`, currentPage)
       setPageNumber();
+      setTableOfContent();
     });
   });
 }
@@ -275,7 +276,7 @@ $(document).on('click', '.toc-page-link', function (event) {
     render(currentPage);
     setPageNumber();
     setTimeout(toggleLoader(false), 100);
-})
+});
 // handler for page number
 function setPageNumber() {
   document.getElementById('currentPage').value = currentPage || 1;
