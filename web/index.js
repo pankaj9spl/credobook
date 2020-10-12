@@ -864,3 +864,23 @@ function initScaleRotate() {
   }
   document.addEventListener('keyup', handleKeyPress);
 })();
+
+
+async function initTableOfContent(pdf) {
+
+  let outline = await pdf.getOutline();
+  if (outline) {
+    for (let i = 0; i < outline.length; i++) {
+      const dest = outline[i].dest;
+      pdf.getDestination(dest).then(function (dest) {
+        debugger;
+        const ref = dest[0];
+        // And the page id
+        pdf.getPageIndex(ref).then(function (id) {
+          // page number = index + 1
+          pairs.push({title: outline.title, pageNumber: parseInt(id) + 1});
+        });
+      });
+    }
+  }
+}
