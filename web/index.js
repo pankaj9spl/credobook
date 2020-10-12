@@ -12,6 +12,7 @@ let devicePlateform;
 let NUM_PAGES = 0;
 let PASSWORD;
 let PDF_DOC;
+let isIndexLoaded = false;
 let ACTUAL_SCALE = 0.65;
 let globalScale = parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65;
 let RENDER_OPTIONS = {
@@ -58,8 +59,17 @@ document.clearResource = async function() {
   });
 };
 
+// fires on back event of the native navbar navigation
+document.sendDataToNative = function () {
+  console.log("Called from the sendDataToNative fn")
+  return sendLocalJsonToNative()
+}
+
 document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform, passCode) {
   console.log('Update function called from ==> ', plateform);
+  if (plateform !== 'desktop'){
+    document.getElementById('highLightButton').style.display = 'none';
+  }
   if (!documentPath) {
     // eslint-disable-next-line no-undef
     JSBridge.showMessageInNative('PDF path is invalid or pdf does not exists');
@@ -182,7 +192,6 @@ function getPdfId() {
   }
 }
 getPdfId();
-
 function render(page) {
   toggleLoader(true);
   let loadingTask;
@@ -204,6 +213,10 @@ function render(page) {
   document.clearResource();
   return new Promise(function( resolve, reject) {
     loadingTask.then((pdf) => {
+      if (!isIndexLoaded) {
+        setTableOfContent(pdf);
+        isIndexLoaded=true;
+      }
       RENDER_OPTIONS.pdfDocument = pdf;
       PDF_DOC = pdf;
       let viewer = document.getElementById('viewer');
@@ -221,6 +234,67 @@ function render(page) {
     });
   });
 }
+
+async function setTableOfContent(pdf) {
+    let outline = await pdf.getOutline();
+    if (!outline) {
+      console.log('No Outline Found');
+      let toggleButton = document.querySelector('.index-toggle')
+      toggleButton.style.display = "none";
+      return;
+    }
+    for (let i = 0; i < outline.length; i++) {
+        let page = await pdf.getPageIndex(outline[i].dest[0])
+        let html
+        if (outline[i].items.length) {
+            html = '<div class="title">' +
+                '<i class="dropdown icon"></i> ' +
+                '<a href="javascript:void(0);" class="toc-page-link" data-page="' + page + '">' + outline[i].title + '</a>' +
+                '</div>'
+        } else {
+            html = '<div class="text-div"><a href="javascript:void(0);" data-page="' + page + '" class="text toc-page-link">' + outline[i].title + '</a></div>'
+        }
+        for (let j = 0; j < outline[i].items.length; j++) {
+            let pageLev1 = await pdf.getPageIndex(outline[i].items[j].dest[0])
+            if (j === 0) {
+                html += '<div class="content">'
+            }
+            html += '<div class="title">\n' +
+                '<i class="dropdown icon"></i> <a href="javascript:void(0);" data-page="' + pageLev1 + '" class="toc-page-link">' + outline[i].items[j].title + '</a>' +
+                '</div>'
+            if (outline[i].items[j].items.length) {
+                // html += '<div class="content">'
+            }
+            for (let k = 0; k < outline[i].items[j].items.length; k++) {
+                let pageLev2 = await pdf.getPageIndex(outline[i].items[j].items[k].dest[0])
+                if (k === 0) {
+                    html += '<div class="content">'
+                }
+                html += '<div class="title"><a href="javascript:void(0);" data-page="' + pageLev2 + '" class="toc-page-link">'
+                    + outline[i].items[j].items[k].title + '</a></div>'
+                if (k === outline[i].items[j].items.length - 1) {
+                    html += '</div>'
+                }
+            }
+            if (j === outline[i].items.length - 1) {
+
+                html += '</div>'
+            }
+
+        }
+
+        $("#toc-container").append(html)
+    }
+}
+
+$(document).on('click', '.toc-page-link', function (event) {
+    const page = parseInt($(this).data("page")) + 1
+    toggleLoader(true);
+    currentPage = page
+    render(currentPage);
+    setPageNumber();
+    setTimeout(toggleLoader(false), 100);
+});
 // handler for page number
 function setPageNumber() {
   document.getElementById('currentPage').value = currentPage || 1;
@@ -311,10 +385,10 @@ function initPenWrapper() {
       document.querySelector('.toolbar .pen-size').value = penSize;
     }
 
-    if (penColor !== color) {
-      modified = true;
-      penColor = color;
-      localStorage.setItem(`${RENDER_OPTIONS.documentId}/pen/color`, penColor);
+        if (penColor !== color) {
+            modified = true;
+            penColor = color;
+            localStorage.setItem(`${RENDER_OPTIONS.documentId}/pen/color`, penColor);
 
       let selected = document.querySelector('.toolbar .pen-color.color-selected');
       if (selected) {
@@ -834,6 +908,7 @@ function initScaleRotate() {
     el.addEventListener('click', handleScaleChange);
   });
 }
+
 // attacg all key handlers
 (function keyBinder() {
   // define all handler
@@ -864,23 +939,3 @@ function initScaleRotate() {
   }
   document.addEventListener('keyup', handleKeyPress);
 })();
-
-
-async function initTableOfContent(pdf) {
-
-  let outline = await pdf.getOutline();
-  if (outline) {
-    for (let i = 0; i < outline.length; i++) {
-      const dest = outline[i].dest;
-      pdf.getDestination(dest).then(function (dest) {
-        debugger;
-        const ref = dest[0];
-        // And the page id
-        pdf.getPageIndex(ref).then(function (id) {
-          // page number = index + 1
-          pairs.push({title: outline.title, pageNumber: parseInt(id) + 1});
-        });
-      });
-    }
-  }
-}
