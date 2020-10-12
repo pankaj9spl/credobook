@@ -218,9 +218,65 @@ function render(page) {
       currentPage = page;
       localStorage.setItem(`${RENDER_OPTIONS.documentId}/page`, currentPage)
       setPageNumber();
+      setTableOfContent();
     });
   });
 }
+
+async function setTableOfContent() {
+    let outline = await PDF_DOC.getOutline();
+    for (let i = 0; i < outline.length; i++) {
+        let page = await PDF_DOC.getPageIndex(outline[i].dest[0])
+        let html
+        if (outline[i].items.length) {
+            html = '<div class="title">' +
+                '<i class="dropdown icon"></i> ' +
+                '<a href="javascript:void(0);" class="toc-page-link" data-page="' + page + '">' + outline[i].title + '</a>' +
+                '</div>'
+        } else {
+            html = '<div class="text-div"><a href="javascript:void(0);" data-page="' + page + '" class="text toc-page-link">' + outline[i].title + '</a></div>'
+        }
+        for (let j = 0; j < outline[i].items.length; j++) {
+            let pageLev1 = await PDF_DOC.getPageIndex(outline[i].items[j].dest[0])
+            if (j == 0) {
+                html += '<div class="content">'
+            }
+            html += '<div class="title">\n' +
+                '<i class="dropdown icon"></i> <a href="javascript:void(0);" data-page="' + pageLev1 + '" class="toc-page-link">' + outline[i].items[j].title + '</a>' +
+                '</div>'
+            if (outline[i].items[j].items.length) {
+                // html += '<div class="content">'
+            }
+            for (let k = 0; k < outline[i].items[j].items.length; k++) {
+                let pageLev2 = await PDF_DOC.getPageIndex(outline[i].items[j].items[k].dest[0])
+                if (k == 0) {
+                    html += '<div class="content">'
+                }
+                html += '<div class="title"><a href="javascript:void(0);" data-page="' + pageLev2 + '" class="toc-page-link">'
+                    + outline[i].items[j].items[k].title + '</a></div>'
+                if (k == outline[i].items[j].items.length - 1) {
+                    html += '</div>'
+                }
+            }
+            if (j == outline[i].items.length - 1) {
+
+                html += '</div>'
+            }
+
+        }
+
+        $("#toc-container").append(html)
+    }
+}
+
+$(document).on('click', '.toc-page-link', function (event) {
+    const page = parseInt($(this).data("page")) + 1
+    toggleLoader(true);
+    currentPage = page
+    render(currentPage);
+    setPageNumber();
+    setTimeout(toggleLoader(false), 100);
+});
 // handler for page number
 function setPageNumber() {
   document.getElementById('currentPage').value = currentPage || 1;
@@ -311,10 +367,10 @@ function initPenWrapper() {
       document.querySelector('.toolbar .pen-size').value = penSize;
     }
 
-    if (penColor !== color) {
-      modified = true;
-      penColor = color;
-      localStorage.setItem(`${RENDER_OPTIONS.documentId}/pen/color`, penColor);
+        if (penColor !== color) {
+            modified = true;
+            penColor = color;
+            localStorage.setItem(`${RENDER_OPTIONS.documentId}/pen/color`, penColor);
 
       let selected = document.querySelector('.toolbar .pen-color.color-selected');
       if (selected) {
@@ -834,6 +890,7 @@ function initScaleRotate() {
     el.addEventListener('click', handleScaleChange);
   });
 }
+
 // attacg all key handlers
 (function keyBinder() {
   // define all handler
