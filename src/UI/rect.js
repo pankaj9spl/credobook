@@ -45,7 +45,6 @@ function getSelectionRects() {
  */
 function handleDocumentMousedown(e) {
   let svg;
-  debugger;
   if (_type !== 'area' || !(svg = findSVGAtPoint(e.clientX, e.clientY))) {
     return;
   }
@@ -210,10 +209,33 @@ function saveRect(type, rects, color) {
 /**
  * Enable rect behavior
  */
+
+function attachSelectableOverlay() {
+  let nodeToCopy = document.querySelector('.textLayer');
+  let parent = nodeToCopy.parentNode;
+  let overlayToattach = nodeToCopy.cloneNode(true);
+  overlayToattach.setAttribute('id', 'attachedOverlay');
+  overlayToattach.style.zIndex = '99';
+  parent.appendChild(overlayToattach);
+}
+
+function detachSelectableOverlay() {
+  try {
+    document.getElementById('attachedOverlay').remove();
+  }
+  catch (e) {
+    console.info('Skipping the detachOverlay as not found');
+  }
+}
+
 export function enableRect(type) {
   _type = type;
 
   if (_enabled) { return; }
+
+  if (type === 'highlight') {
+    attachSelectableOverlay();
+  }
 
   _enabled = true;
   document.addEventListener('mouseup', handleDocumentMouseup);
@@ -228,6 +250,7 @@ export function disableRect() {
   if (!_enabled) { return; }
 
   _enabled = false;
+  detachSelectableOverlay();
   document.removeEventListener('mouseup', handleDocumentMouseup);
   document.removeEventListener('mousedown', handleDocumentMousedown);
   document.removeEventListener('keyup', handleDocumentKeyup);
