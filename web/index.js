@@ -244,6 +244,7 @@ async function setTableOfContent(pdf) {
       return;
     }
     for (let i = 0; i < outline.length; i++) {
+
         let page = await pdf.getPageIndex(outline[i].dest[0])
         let html
         if (outline[i].items.length) {
@@ -257,28 +258,34 @@ async function setTableOfContent(pdf) {
         for (let j = 0; j < outline[i].items.length; j++) {
             let pageLev1 = await pdf.getPageIndex(outline[i].items[j].dest[0])
             if (j === 0) {
-                html += '<div class="content">'
+                html += '<div class="content"><div class="accordion">'
             }
-            html += '<div class="title">\n' +
+           if (outline[i].items[j].items.length) {
+                html += '<div class="title">\n' +
                 '<i class="dropdown icon"></i> <a href="javascript:void(0);" data-page="' + pageLev1 + '" class="toc-page-link">' + outline[i].items[j].title + '</a>' +
                 '</div>'
+            }else {
+              html += '<div class="text-div">\n' +
+                '<a href="javascript:void(0);" data-page="' + pageLev1 + '" class="text toc-page-link">' + outline[i].items[j].title + '</a>' +
+                '</div>'
+            }
             if (outline[i].items[j].items.length) {
                 // html += '<div class="content">'
             }
             for (let k = 0; k < outline[i].items[j].items.length; k++) {
                 let pageLev2 = await pdf.getPageIndex(outline[i].items[j].items[k].dest[0])
                 if (k === 0) {
-                    html += '<div class="content">'
+                   html += '<div class="content"><div class="accordion">'
                 }
-                html += '<div class="title"><a href="javascript:void(0);" data-page="' + pageLev2 + '" class="toc-page-link">'
+                html += '<div class="text-div"><a href="javascript:void(0);" data-page="' + pageLev2 + '" class="text toc-page-link">'
                     + outline[i].items[j].items[k].title + '</a></div>'
                 if (k === outline[i].items[j].items.length - 1) {
-                    html += '</div>'
+                    html += '</div></div>'
                 }
             }
             if (j === outline[i].items.length - 1) {
 
-                html += '</div>'
+                html += '</div></div>'
             }
 
         }

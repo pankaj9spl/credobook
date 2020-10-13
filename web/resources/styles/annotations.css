@@ -289,7 +289,7 @@ h1 {
 }
 
 .index-open .card .card-header .bkmr-title {
-    font-size: 22px;
+    font-size: 18px;
     margin-bottom: 0;
     padding-top: 5px !important;
 }
@@ -382,7 +382,8 @@ h1 {
 .treemenu .title a {
     color: #fff;
     text-decoration: none;
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 400;
 }
 
 .treemenu.boxed .ui.styled.accordion>.title:not(:first-child) {
@@ -438,8 +439,16 @@ h1 {
 }
 
 .ui .text-div .text {
-    font-size: 16px !important;
+    font-size: 14px !important;
     color: #fff;
+    font-weight: 400;
+    text-decoration: none;
+    padding: .5em .5em .5em 1.8em !important;
+}
+.ui .content .text-div .text {
+    font-size: 12px !important;
+    color: #fff;
+    font-weight: 400;
     text-decoration: none;
     padding: .5em .5em .5em 1.8em !important;
 }

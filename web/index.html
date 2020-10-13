@@ -11,6 +11,7 @@
 	<link rel="icon" type="image/png" sizes="16x16" href="resources/favicon/favicon.ico">
 	<link rel="stylesheet" href="resources/bootstrap/scss/bootstrap.css">
 	<link rel="stylesheet" href="resources/plugins/select/bootstrap-select.min.css">
+	<link rel="stylesheet" href="resources/styles/semantic.min.css">
 	<link rel="stylesheet" href="resources/styles/style.css">
 	<link rel="stylesheet" type="text/css" href="shared/pdf_viewer.css" />
 	<link rel="stylesheet" type="text/css" href="resources/styles/annotations.css" />
@@ -331,11 +332,8 @@
 		let passcode = '+i3n3cimboL4rKh3xMqvUrciTIaCVaoRboTnmSBJU2I='
 		// let passcode = '73034c5c-9a4c-4b17-abc1-b47db6dd7fd4'
 		setTimeout(() => {
-			document.updateFromNative('test3.pdf', 'test3.pdf', '../test.json', 'desktop', passcode);
+			document.updateFromNative('test2.pdf', 'test2.pdf', '../test.json', 'desktop', passcode);
 		}, 1);
-		setTimeout(() => {
-			document.sendDataToNative();
-		}, 1000);
 	</script>
 	<script>
 		$(document).ready(function () {
