@@ -3,6 +3,7 @@ import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
 import * as crypto from 'crypto';
+import hammerjs from 'hammerjs';
 import regeneratorRuntime from "regenerator-runtime";
 
 let toolType;
@@ -105,6 +106,7 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     }
     if (passCode) {
       RENDER_OPTIONS.code = decrypt(passCode);
+      console.log(RENDER_OPTIONS.code)
       // RENDER_OPTIONS.code = passCode;
     }
     RENDER_OPTIONS.documentId = documentId;
@@ -379,7 +381,7 @@ function initPenWrapper() {
   function initPen() {
     setPen(
       localStorage.getItem(`${RENDER_OPTIONS.documentId}/pen/size`) || 1,
-      localStorage.getItem(`${RENDER_OPTIONS.documentId}/pen/color`) || '#000000'
+      localStorage.getItem(`${RENDER_OPTIONS.documentId}/pen/color`) || '#a2a2a382'
     );
   }
 
@@ -945,4 +947,85 @@ function initScaleRotate() {
     }
   }
   document.addEventListener('keyup', handleKeyPress);
+})();
+// (function (){
+//   let myElement = document.getElementById('content-wrapper');
+//   var mc = new Hammer(myElement);
+//   mc.on('swiperight', function (e) {
+//     var endPoint = e.pointers[0].pageX;
+//     var distance = e.distance;
+//     var origin = endPoint - distance;
+//
+//     if (origin <= 10) {
+//         // They swiped, starting from no more than 15px away from the edge.
+//       console.log('swiperight')
+//     }
+// });
+// })();
+
+(function(){
+  let myElement = document.getElementById('content-wrapper');
+  myElement.addEventListener('touchstart', handleTouchStart, false);
+  myElement.addEventListener('touchmove', handleTouchMove, false);
+
+  var xDown = null;
+  var yDown = null;
+
+  function getTouches(evt) {
+    return evt.touches ||             // browser API
+           evt.originalEvent.touches; // jQuery
+  }
+
+  function handleTouchStart(evt) {
+      const firstTouch = getTouches(evt)[0];
+      xDown = firstTouch.clientX;
+      yDown = firstTouch.clientY;
+  }
+
+  function handleTouchMove(evt) {
+      if ( ! xDown || ! yDown ) {
+          return;
+      }
+
+      var xUp = evt.touches[0].clientX;
+      var yUp = evt.touches[0].clientY;
+
+      var xDiff = xDown - xUp;
+      var yDiff = yDown - yUp;
+
+      if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
+          if ( xDiff > 0 ) {
+              /* left swipe */
+            console.log("Left swipe")
+          } else {
+              /* right swipe */
+            console.log("Right Swipe")
+          }
+      } else {
+          if ( yDiff > 0 ) {
+              /* up swipe */
+          } else {
+              /* down swipe */
+          }
+      }
+      /* reset values */
+      xDown = null;
+      yDown = null;
+  }
+})();
+
+(function(){
+  let el =  document.getElementById('content-wrapper')
+    el.addEventListener('scroll',  function() {
+        var $width = $(el).outerWidth();
+        var $scrollWidth = $(el)[0].scrollWidth;
+        var $scrollLeft = $(el).scrollLeft();
+
+        if ($scrollWidth - $width === $scrollLeft){
+            alert('right end');
+        }
+        if ($scrollLeft===0){
+            alert('left end');
+        }
+    });
 })();

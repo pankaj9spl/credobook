@@ -1,9 +1,6 @@
-<!-- New Viewer style integrations-->
 <!doctype html>
 <html lang="en">
-
 <head>
-	<!-- Required meta tags -->
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta name="format-detection" content="telephone=no">
@@ -23,7 +20,6 @@
 			title="previous" /></a>
 	<a id="next" class="next" title="Next Page"><img src="resources/img/icons/down-angle-color.svg" alt="Next"
 			title="Next" /></a>
-	<!--loader section -->
 	<div id="loader" class='loader'>
 		<div class="overlay"></div>
 		<div class='loader--dot'></div>
@@ -34,7 +30,6 @@
 		<div class='loader--dot'></div>
 		<div class='loader--text'></div>
 	</div>
-	<!-- end loader section -->
 	<div class="full-section">
 		<div class="table-content-header">
 			<div class="container-fluid full-container">
@@ -83,11 +78,9 @@
 						</div>
 						<div class="next-prev-search pl-2">
 							<button id="searchPrev" class="btn prevbtn" type="button">
-								<!-- <img src="resources/img/icons/down-angle.svg" alt=""/> -->
 								<span class="caret"></span>
 							</button>
 							<button id="searchNext" class="btn nextbtn" type="button">
-								<!-- <img src="resources/img/icons/down-angle.svg" alt=""/> -->
 								<span class="caret"></span>
 							</button>
 						</div>
@@ -111,7 +104,6 @@
 						</h4>
 					</div>
 					<div class="card-body" id="bookMarkContainer">
-						<!--bookmark section here-->
 					</div>
 				</div>
 			</div>
@@ -329,10 +321,10 @@
 	<script src="__build__/index.js"></script>
 	<script>
 		let jsonString = '[{"annotations": []}, {"bookmarks": [] }]';
-		let passcode = '+i3n3cimboL4rKh3xMqvUrciTIaCVaoRboTnmSBJU2I='
-		// let passcode = '73034c5c-9a4c-4b17-abc1-b47db6dd7fd4'
+		// let passcode = '+i3n3cimboL4rKh3xMqvUrciTIaCVaoRboTnmSBJU2I='
+		let passcode = '7NWPF400O142TCWz9LE1uPP8W6Jep50ixaSjHqt5p5n3qiowe6o3zacWy5OrxeXp'
 		setTimeout(() => {
-			document.updateFromNative('test2.pdf', 'test2.pdf', '../test.json', 'desktop', passcode);
+			document.updateFromNative('test.pdf', 'test2.pdf', '../test.json', 'desktop', passcode);
 		}, 1);
 	</script>
 	<script>
@@ -356,7 +348,6 @@
 					$("body .dropbtn").removeClass('top-ar');
 				}
 			});
-			<!--For Table of Content-->
       $(".index-toggle").click(function () {
           $("body").toggleClass("index-open");
       });
@@ -367,9 +358,7 @@
               .removeClass('positive');
           $('.treemenu').toggleClass('boxed');
       });
-      <!--For Table of Content-->
 		});
 	</script>
 </body>
 </html>
-<!-- End style integrations-->
