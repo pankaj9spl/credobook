@@ -372,12 +372,15 @@ function handleAnnotationClick(target) {
 
 function toggleZindex(flag) {
   let svg = document.querySelector('.annotationLayer');
+  let textLayer = document.querySelector('.textLayer');
   if (svg) {
     if (flag) {
-      svg.style.zIndex = '-1';
+      svg.style.zIndex = '1';
+      textLayer.style.zIndex = '2';
     }
     else {
-      svg.style.zIndex = 'unset';
+      svg.style.zIndex = '2';
+      textLayer.style.zIndex = '1';
     }
   }
 }
