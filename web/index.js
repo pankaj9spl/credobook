@@ -3,7 +3,6 @@ import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
 import * as crypto from 'crypto';
-import hammerjs from 'hammerjs';
 import regeneratorRuntime from "regenerator-runtime";
 
 let toolType;
@@ -228,8 +227,13 @@ function render(page) {
       viewer.appendChild(pageToRender);
       UI.renderPage(page, RENDER_OPTIONS).then(() => {
         toggleLoader(false);
+        let textLayer = document.querySelector('.textLayer')
+        urlify(textLayer);
+        attachLinkCallback();
+        toggleZindex(true)
         resolve(true)
       });
+
       currentPage = page;
       localStorage.setItem(`${RENDER_OPTIONS.documentId}/page`, currentPage)
       setPageNumber();
@@ -918,7 +922,7 @@ function initScaleRotate() {
   });
 }
 
-// attacg all key handlers
+// attach all key handlers
 (function keyBinder() {
   // define all handler
   let nextButton = document.getElementById('next');
@@ -994,18 +998,21 @@ function initScaleRotate() {
       var yDiff = yDown - yUp;
 
       if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
-          if ( xDiff > 0 ) {
-              /* left swipe */
-            console.log("Left swipe")
+          if ( xDiff > 0 ) {0
+            if (devicePlateform !== 'desktop'
+                && RENDER_OPTIONS.scale < 0.75
+                && currentPage < NUM_PAGES
+                && toolType === 'cursor'
+            ) {
+              render(currentPage + 1)
+            }
           } else {
-              /* right swipe */
-            console.log("Right Swipe")
-          }
-      } else {
-          if ( yDiff > 0 ) {
-              /* up swipe */
-          } else {
-              /* down swipe */
+             if (devicePlateform !== 'desktop'
+                 && RENDER_OPTIONS.scale < 0.75
+                 && currentPage > 1
+                 && toolType === 'cursor') {
+              render(currentPage - 1)
+            }
           }
       }
       /* reset values */
@@ -1014,18 +1021,62 @@ function initScaleRotate() {
   }
 })();
 
-(function(){
-  let el =  document.getElementById('content-wrapper')
-    el.addEventListener('scroll',  function() {
-        var $width = $(el).outerWidth();
-        var $scrollWidth = $(el)[0].scrollWidth;
-        var $scrollLeft = $(el).scrollLeft();
 
-        if ($scrollWidth - $width === $scrollLeft){
-            alert('right end');
-        }
-        if ($scrollLeft===0){
-            alert('left end');
-        }
-    });
-})();
+function toggleZindex(flag) {
+  let svg = document.querySelector('.annotationLayer');
+  if (svg) {
+    if (flag) {
+      svg.style.zIndex = '-1';
+    }
+    else {
+      svg.style.zIndex = 'unset';
+    }
+  }
+}
+
+function urlify(textLayer) {
+  let svg = document.querySelector('.annotationLayer')
+  let urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+  let spanList = textLayer.querySelectorAll('span')
+
+  spanList.forEach( (el) => {
+    el.innerHTML  = el.textContent.replace(urlRegex, function(url,b,c) {
+      let url2 = (c === 'www.') ?  'http://' +url : url;
+      return `<span class="callback-links" data-url="${url2}">${url}</span>`;
+    })
+  })
+}
+
+function attachLinkCallback(){
+  document.querySelectorAll('.callback-links').forEach((el) => {
+    el.addEventListener('click', (event) => {
+      let url = event.currentTarget.getAttribute('data-url');
+      urlCallBack(url);
+      event.preventDefaults();
+      event.stopPropagation();
+    })
+  })
+}
+
+function urlCallBack(url2){
+  console.log('Call back from link in the native');
+  switch (devicePlateform) {
+    case 'android':
+      // eslint-disable-next-line no-undef
+      JSBridge.urlClickCallback(url2);
+      break;
+    case 'ios':
+      let appName = 'credowebview';
+      let actionType = 'openexternalurl';
+      let escapedJsonParameters = escape(url2);
+      let url = appName + '://' + actionType + '#' + escapedJsonParameters;
+      document.location.href = url;
+      break;
+    case 'desktop':
+      window.Bridge.urlClickCallback(url2);
+      break;
+    default:
+      console.error('Plateform Received is: ' + devicePlateform);
+      return;
+  }
+}

@@ -273,6 +273,13 @@ h1 {
     z-index: 2;
 }
 
+.callback-links {
+    cursor: pointer !important;
+}
+
+.textLayer .endOfContent.active {
+    background: transparent !important;
+}
 @media (max-width: 575.98px) {
     .index-section {
         width: 50%;
