@@ -215,7 +215,7 @@ function attachSelectableOverlay() {
   let parent = nodeToCopy.parentNode;
   let overlayToattach = nodeToCopy.cloneNode(true);
   overlayToattach.setAttribute('id', 'attachedOverlay');
-  overlayToattach.style.zIndex = '1';
+  overlayToattach.style.zIndex = '5';
   parent.appendChild(overlayToattach);
 }
 
