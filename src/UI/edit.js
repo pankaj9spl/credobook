@@ -416,5 +416,5 @@ export function disableEdit() {
 
   _enabled = false;
   removeEventListener('annotation:click', handleAnnotationClick);
-};
+}
 
