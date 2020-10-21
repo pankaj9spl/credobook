@@ -571,7 +571,7 @@ function initBookMarks(document, window) {
   function attachBookMarkToView(e) {
     e.innerHTML = '';
     let bookmarks = getBookMarks();
-    for (let i = 1; i < NUM_PAGES; i++) {
+    for (let i = 1; i <= NUM_PAGES; i++) {
       let pageBookMarks = bookmarks.filter((x) => x.page === i);
       if (pageBookMarks.length) {
         let bookmarkViewEle = createPageBookmarkView(i, pageBookMarks);

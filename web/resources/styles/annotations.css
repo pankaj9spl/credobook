@@ -321,13 +321,13 @@ h1 {
 
 @media (max-width: 355px) {
     .content-back-btn {
-        left: 5px;
+        left: 3px;
     }
     .fixed-icons {
         width: 255px;
     }
     .fixed-icons {
-        right: 5px;
+        right: 3px;
     }
     .fixed-icons li {
         display: inline-block;
@@ -470,4 +470,9 @@ h1 {
 
 .ui.styled.accordion .content {
     padding: .5em .5em 0em .5em !important;
+}
+
+#saveButton{
+    height: 50px;
+    width: 50px;
 }
