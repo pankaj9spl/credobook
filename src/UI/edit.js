@@ -369,11 +369,32 @@ function handleAnnotationClick(target) {
 /**
  * Enable edit mode behavior.
  */
+
+function toggleZindex(flag) {
+  let svg = document.querySelector('.annotationLayer');
+  let textLayer = document.querySelector('.textLayer');
+  if (svg) {
+    if (flag) {
+      svg.style.zIndex = '1';
+      textLayer.style.zIndex = '2';
+    }
+    else {
+      svg.style.zIndex = '2';
+      textLayer.style.zIndex = '1';
+    }
+  }
+}
+
 export function enableEdit() {
   if (_enabled) {
     return;
   }
-
+  try {
+    toggleZindex(true);
+  }
+  catch (e) {
+    console.error('Error toggaling zIndex ', e);
+  }
   _enabled = true;
   addEventListener('annotation:click', handleAnnotationClick);
 };
@@ -383,12 +404,17 @@ export function enableEdit() {
  */
 export function disableEdit() {
   destroyEditOverlay();
-
+  try {
+    toggleZindex(false);
+  }
+  catch (e) {
+    console.error('Error toggaling zIndex ', e);
+  }
   if (!_enabled) {
     return;
   }
 
   _enabled = false;
   removeEventListener('annotation:click', handleAnnotationClick);
-};
+}
 

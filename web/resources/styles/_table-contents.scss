@@ -5,6 +5,10 @@ $header-space: 10px;
 .table-content-header {
   background-color: $light-gray;
   padding: $header-space 0;
+  .padding-15{
+    padding-left: 15px;
+    padding-right: 15px;
+  }
   .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn){
     width: auto !important;
     max-width: 100%;
@@ -188,6 +192,43 @@ $header-space: 10px;
     }
   }
 }
+.index-section {
+  width: $bookmark-width;
+  background-color: $gray-bg;
+  position: absolute;
+  top: 0;
+  left: -(#{$bookmark-width});
+  height: 100%;
+  overflow-y: auto;
+  transition: all ease 0.5s;
+  z-index: 2;
+  @include media-breakpoint-down(xs){
+    width: $bookmark-width-xs;
+  }
+  .card {
+    .card-header {
+      padding: 0 20px 20px 20px;
+      .bkmr-title {
+        font-size: 22px;
+        color: $white;
+        margin-bottom: 0;
+        img {
+          margin-right: 12px;
+        }
+        span {
+          vertical-align: top;
+        }
+      }
+    }
+    .card-body {
+      padding: 0 20px 20px 20px;
+      p{
+        font-size: 16px;
+        color: #fff;
+      }
+    }
+  }
+}
 .fixed-icons {
   position: fixed;
   bottom: 15px;
@@ -197,6 +238,9 @@ $header-space: 10px;
   @extend .d-flex;
   @extend .justify-content-end;
   text-align: right;
+  @media (max-width: 355px){
+    width: 240px;
+  }
   li {
     display: inline-block;
     margin: 6px 3px;
@@ -320,6 +364,16 @@ $header-space: 10px;
     transition: all ease 0.5s;
   }
 }
+.index-open {
+  .table-content-section {
+    // width: calc(100% - #{$bookmark-width});
+    transition: all ease 0.5s;
+  }
+  .index-section {
+    left: 0;
+    transition: all ease 0.5s;
+  }
+}
 .search-content {
   position: relative;
   margin-top: 2px;
@@ -363,7 +417,17 @@ $header-space: 10px;
     color: $secondary-color;
     height: calc(#{$h-input-btn-small} + 5px);
     font-size: 16px;
-    padding-right: calc(#{$h-input-btn-small} + 90px) !important;
+    padding-right: calc(#{$h-input-btn-small} + 90px + 140px) !important;
+    @include border-radius($input-radius);
+  }
+  .find-pdf-count{
+    position: absolute;
+    right: calc(#{$h-input-btn-small} + 57px + 25px);
+    top: 50%;
+    transform: translateY(-50%);
+    label{
+      margin-bottom: 0;
+    }
   }
 }
 
@@ -450,11 +514,14 @@ $header-space: 10px;
   .close-button{
     position: absolute;
     top: 100%;
-    right: 2px;
+    right: 3px;
     margin-top: 6px;
-    // @include media-breakpoint-down(md){
-    //   right: -3px;
-    // }
+    @media (max-width: 355px){
+      position: fixed;
+      top: auto;
+      right: 18px;
+      bottom: 21px;
+    }
   }
 }
 @include media-breakpoint-down(md){

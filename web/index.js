@@ -2,17 +2,25 @@ import PDFJSAnnotate from '../';
 import * as $ from 'jquery';
 import uuid from '../src/utils/uuid';
 const { UI } = PDFJSAnnotate;
+import * as crypto from 'crypto';
+import regeneratorRuntime from "regenerator-runtime";
 
 let toolType;
 let documentId;
 let documentPath;
 let devicePlateform;
-let PAGE_HEIGHT;
+let NUM_PAGES = 0;
+let PASSWORD;
+let PDF_DOC;
+let isIndexLoaded = false;
+let ACTUAL_SCALE = 0.65;
+let globalScale = parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65;
 let RENDER_OPTIONS = {
   documentId: documentId,
   pdfDocument: null,
+  code: PASSWORD,
   documentPath: documentPath,
-  scale: parseFloat(localStorage.getItem(`${documentId}/scale`), 0.65) || 0.65,
+  scale: globalScale,
   rotate: parseInt(localStorage.getItem(`${documentId}/rotate`), 10) || 0
 };
 let currentPage = 1;
@@ -20,37 +28,48 @@ PDFJSAnnotate.setStoreAdapter(new PDFJSAnnotate.LocalStoreAdapter());
 let globalStoreAdapter = PDFJSAnnotate.getStoreAdapter();
 pdfjsLib.workerSrc = './shared/pdf.worker.js';
 
-// Render stuff
-let NUM_PAGES = 0;
-let renderedPages = [];
-let okToRender = false;
+const ENC_KEY = 'bf3c199c2470cb477d907b1e0917c17b';
+const IV = '5183666c72eec9e4';
 
-document.getElementById('content-wrapper').addEventListener('scroll', scrollListner);
-document.getElementById('content-wrapper').addEventListener('touchmove', scrollListner);
+function decrypt(encrypted) {
+  let decipher = crypto.createDecipheriv('aes-256-cbc', ENC_KEY, IV);
+  let decrypted = decipher.update(encrypted, 'base64', 'utf8');
+  return (decrypted + decipher.final('utf8'));
+}
 
-function scrollListner(e) {
-  let visiblePageNum = Math.round(e.target.scrollTop / PAGE_HEIGHT) + 1;
-  currentPage = visiblePageNum;
-  let visiblePage = document.querySelector(`.page[data-page-number="${visiblePageNum}"][data-loaded="false"]`);
-
-  if (renderedPages.indexOf(visiblePageNum) === -1) {
-    okToRender = true;
-    renderedPages.push(visiblePageNum);
+function toggleLoader(flag) {
+  let loader = document.getElementById('loader');
+  if (flag) {
+    loader.classList.add('show-loader');
   }
   else {
-    okToRender = false;
-  }
-
-  if (visiblePage && okToRender) {
-    setTimeout(() => {
-      UI.renderPage(visiblePageNum, RENDER_OPTIONS);
-    });
+    loader.classList.remove('show-loader');
   }
 }
 
-// code for communication with mobile and desktop device for loading pdf files in view
-document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform) {
+document.clearResource = async function() {
+  await  document.querySelectorAll('canvas').forEach((item) => {
+    let context = item.getContext('2d');
+    context.clearRect(0, 0, item.width, item.height);
+    item.height = 0;
+    item.width = 0;
+    item.style.width = 0;
+    item.style.height = 0;
+    console.log("canvas cleared")
+  });
+};
+
+// fires on back event of the native navbar navigation
+document.sendDataToNative = function () {
+  console.log("Called from the sendDataToNative fn")
+  return sendLocalJsonToNative()
+}
+
+document.updateFromNative = function(documentId, documentPath, jsonStructure, plateform, passCode) {
   console.log('Update function called from ==> ', plateform);
+  if (plateform !== 'desktop'){
+    document.getElementById('highLightButton').style.display = 'none';
+  }
   if (!documentPath) {
     // eslint-disable-next-line no-undef
     JSBridge.showMessageInNative('PDF path is invalid or pdf does not exists');
@@ -79,9 +98,15 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
   });
 
   isStorageSet.then(function(ret) {
-    console.log('Promise resolved value is ' + ret);
     if (devicePlateform === 'desktop') {
-      RENDER_OPTIONS.scale = 1.33;
+      RENDER_OPTIONS.scale = 2.00;
+      ACTUAL_SCALE = 1.50;
+      globalScale = RENDER_OPTIONS.scale;
+    }
+    if (passCode) {
+      RENDER_OPTIONS.code = decrypt(passCode);
+      console.log(RENDER_OPTIONS.code)
+      // RENDER_OPTIONS.code = passCode;
     }
     RENDER_OPTIONS.documentId = documentId;
     RENDER_OPTIONS.documentPath = documentPath;
@@ -89,6 +114,8 @@ document.updateFromNative = function(documentId, documentPath, jsonStructure, pl
     setTimeout(() => {
       initBookMarks(document, window);
     }, 200);
+    // initialize the scale function after the viewport and scale has been initialize
+    initScaleRotate();
   }, function(res) {
     console.error(res);
     // eslint-disable-next-line no-undef
@@ -156,36 +183,161 @@ function getPdfId() {
     }, 1000);
   }
   else {
-    render();
+    let lastPage = localStorage.getItem(`${RENDER_OPTIONS.documentId}/page`)
+    if (parseInt(lastPage, 10)) {
+      render(parseInt(lastPage, 10))
+    }
+    else {
+      render(1);
+    }
   }
 }
 getPdfId();
+function render(page) {
+  toggleLoader(true);
+  let loadingTask;
+  if (!PDF_DOC) {
+    loadingTask = pdfjsLib.getDocument({
+      url: RENDER_OPTIONS.documentPath,
+      cMapUrl: 'shared/cmaps/',
+      cMapPacked: true,
+      password: RENDER_OPTIONS.code
+    });
+    loadingTask = loadingTask.promise;
+  }
+  else {
+    loadingTask = new Promise((resolve, reject) => {
+      resolve(PDF_DOC);
+    });
+  }
+  // load the doc from cache
+  document.clearResource();
+  return new Promise(function( resolve, reject) {
+    loadingTask.then((pdf) => {
+      if (!isIndexLoaded) {
+        setTableOfContent(pdf);
+        isIndexLoaded=true;
+      }
+      RENDER_OPTIONS.pdfDocument = pdf;
+      PDF_DOC = pdf;
+      let viewer = document.getElementById('viewer');
+      viewer.innerHTML = '';
+      NUM_PAGES = pdf.numPages;
+      let pageToRender = UI.createPage(page);
+      viewer.appendChild(pageToRender);
+      UI.renderPage(page, RENDER_OPTIONS).then(() => {
+        toggleLoader(false);
+        let textLayer = document.querySelector('.textLayer')
+        urlify(textLayer);
+        attachLinkCallback();
+        toggleZindex(true)
+        resolve(true)
+      });
 
-function render() {
-  const loadingTask = pdfjsLib.getDocument({
-    url: RENDER_OPTIONS.documentPath,
-    cMapUrl: 'shared/cmaps/',
-    cMapPacked: true
-  });
-
-  loadingTask.promise.then((pdf) => {
-    RENDER_OPTIONS.pdfDocument = pdf;
-
-    let viewer = document.getElementById('viewer');
-    viewer.innerHTML = '';
-    NUM_PAGES = pdf.numPages;
-    for (let i = 0; i < NUM_PAGES; i++) {
-      let page = UI.createPage(i + 1);
-      viewer.appendChild(page);
-    }
-
-    UI.renderPage(1, RENDER_OPTIONS).then(([pdfPage, annotations]) => {
-      let viewport = pdfPage.getViewport({scale: RENDER_OPTIONS.scale, rotation: RENDER_OPTIONS.rotate});
-      PAGE_HEIGHT = viewport.height;
+      currentPage = page;
+      localStorage.setItem(`${RENDER_OPTIONS.documentId}/page`, currentPage)
+      setPageNumber();
     });
   });
 }
 
+async function setTableOfContent(pdf) {
+    let outline = await pdf.getOutline();
+    if (!outline) {
+      console.log('No Outline Found');
+      let toggleButton = document.querySelector('.index-toggle')
+      toggleButton.style.display = "none";
+      return;
+    }
+    for (let i = 0; i < outline.length; i++) {
+
+        let page = await pdf.getPageIndex(outline[i].dest[0])
+        let html
+        if (outline[i].items.length) {
+            html = '<div class="title">' +
+                '<i class="dropdown icon"></i> ' +
+                '<a href="javascript:void(0);" class="toc-page-link" data-page="' + page + '">' + outline[i].title + '</a>' +
+                '</div>'
+        } else {
+            html = '<div class="text-div"><a href="javascript:void(0);" data-page="' + page + '" class="text toc-page-link">' + outline[i].title + '</a></div>'
+        }
+        for (let j = 0; j < outline[i].items.length; j++) {
+            let pageLev1 = await pdf.getPageIndex(outline[i].items[j].dest[0])
+            if (j === 0) {
+                html += '<div class="content"><div class="accordion">'
+            }
+           if (outline[i].items[j].items.length) {
+                html += '<div class="title">\n' +
+                '<i class="dropdown icon"></i> <a href="javascript:void(0);" data-page="' + pageLev1 + '" class="toc-page-link">' + outline[i].items[j].title + '</a>' +
+                '</div>'
+            }else {
+              html += '<div class="text-div">\n' +
+                '<a href="javascript:void(0);" data-page="' + pageLev1 + '" class="text toc-page-link">' + outline[i].items[j].title + '</a>' +
+                '</div>'
+            }
+            if (outline[i].items[j].items.length) {
+                // html += '<div class="content">'
+            }
+            for (let k = 0; k < outline[i].items[j].items.length; k++) {
+                let pageLev2 = await pdf.getPageIndex(outline[i].items[j].items[k].dest[0])
+                if (k === 0) {
+                   html += '<div class="content"><div class="accordion">'
+                }
+                html += '<div class="text-div"><a href="javascript:void(0);" data-page="' + pageLev2 + '" class="text toc-page-link">'
+                    + outline[i].items[j].items[k].title + '</a></div>'
+                if (k === outline[i].items[j].items.length - 1) {
+                    html += '</div></div>'
+                }
+            }
+            if (j === outline[i].items.length - 1) {
+
+                html += '</div></div>'
+            }
+
+        }
+
+        $("#toc-container").append(html)
+    }
+}
+
+$(document).on('click', '.toc-page-link', function (event) {
+    const page = parseInt($(this).data("page")) + 1
+    toggleLoader(true);
+    currentPage = page
+    render(currentPage);
+    setPageNumber();
+    setTimeout(toggleLoader(false), 100);
+});
+// handler for page number
+function setPageNumber() {
+  document.getElementById('currentPage').value = currentPage || 1;
+  document.getElementById('totalPages').innerText = NUM_PAGES;
+}
+setTimeout(setPageNumber, 400);
+
+initPageNumberHandler();
+function initPageNumberHandler() {
+  document.getElementById('next').addEventListener('click', (event) => {
+    if (currentPage < NUM_PAGES) {
+      toggleLoader(true);
+      currentPage += 1;
+      render(currentPage);
+      setPageNumber();
+      setTimeout(toggleLoader(false), 100);
+    }
+  });
+  document.getElementById('prev').addEventListener('click', (event) => {
+    if (currentPage > 1) {
+      toggleLoader(true);
+      currentPage -= 1;
+      render(currentPage);
+      setPageNumber();
+      setTimeout(toggleLoader(false), 400);
+    }
+  });
+}
+
+// touch mapper function
 (function() {
   function touchHandler(event) {
     let touches = event.changedTouches;
@@ -233,7 +385,7 @@ function initPenWrapper() {
   function initPen() {
     setPen(
       localStorage.getItem(`${RENDER_OPTIONS.documentId}/pen/size`) || 1,
-      localStorage.getItem(`${RENDER_OPTIONS.documentId}/pen/color`) || '#000000'
+      localStorage.getItem(`${RENDER_OPTIONS.documentId}/pen/color`) || '#a2a2a382'
     );
   }
 
@@ -246,10 +398,10 @@ function initPenWrapper() {
       document.querySelector('.toolbar .pen-size').value = penSize;
     }
 
-    if (penColor !== color) {
-      modified = true;
-      penColor = color;
-      localStorage.setItem(`${RENDER_OPTIONS.documentId}/pen/color`, penColor);
+        if (penColor !== color) {
+            modified = true;
+            penColor = color;
+            localStorage.setItem(`${RENDER_OPTIONS.documentId}/pen/color`, penColor);
 
       let selected = document.querySelector('.toolbar .pen-color.color-selected');
       if (selected) {
@@ -303,6 +455,12 @@ function initPenWrapper() {
     setActiveToolbarItem(tooltype, document.querySelector(`.toolbar button[data-tool-type=${tooltype}]`));
   }
 
+  // activate cursor tool on close button
+  function activateCursor() {
+    let cursorButton = document.querySelector('button[data-tool-type="cursor"]');
+    setActiveToolbarItem('cursor', cursorButton);
+  }
+  document.querySelector('.close-button').addEventListener('click', activateCursor);
   function setActiveToolbarItem(type, button) {
     let active = document.querySelector('.toolbar button.active');
     if (active) {
@@ -384,6 +542,19 @@ function initPenWrapper() {
       setActiveToolbarItem(e.currentTarget.getAttribute('data-tool-type'), e.currentTarget);
     }
   }
+  let nav = document.querySelector('.more-buttons');
+  let win = document.querySelector('#longPress');
+  let closeButton = document.querySelector('.close-button');
+  win.addEventListener('click', (event) => {
+    nav.classList.add('show');
+    let el = document.querySelector('button[data-tool-type="draw"]');
+    setActiveToolbarItem('draw', el);
+  });
+
+  closeButton.addEventListener('click', (event) => {
+    nav.classList.remove('show');
+    nav.removeAttribute('style');
+  });
   document.querySelectorAll('button[data-tool-type]').forEach(item => {
     item.addEventListener('click', event => {
       // handle click
@@ -400,7 +571,7 @@ function initBookMarks(document, window) {
   function attachBookMarkToView(e) {
     e.innerHTML = '';
     let bookmarks = getBookMarks();
-    for (let i = 1; i < NUM_PAGES; i++) {
+    for (let i = 1; i <= NUM_PAGES; i++) {
       let pageBookMarks = bookmarks.filter((x) => x.page === i);
       if (pageBookMarks.length) {
         let bookmarkViewEle = createPageBookmarkView(i, pageBookMarks);
@@ -431,7 +602,8 @@ function initBookMarks(document, window) {
       a.textContent = `${bookmark.text}`;
       a.dataset.page = page;
       a.onclick = function(e) {
-        document.getElementById(`pageContainer${page}`).scrollIntoView(true);
+        currentPage = page;
+        render(page);
       };
       let button = document.createElement('button');
       button.className = 'btn';
@@ -451,15 +623,12 @@ function initBookMarks(document, window) {
     });
     return div;
   }
-
   function getBookMarks() {
     return JSON.parse(localStorage.getItem(`${RENDER_OPTIONS.documentId}/bookmarks`)) || [];
   }
-
   function setBookMarks(bookMarks) {
     localStorage.setItem(`${RENDER_OPTIONS.documentId}/bookmarks`, JSON.stringify(bookMarks));
   }
-
   function addBookMark(text, pageNumber) {
     let bookMarks = getBookMarks();
     bookMarks.push({type: 'bookmark', class: 'Bookmarks', text: text, page: pageNumber, uuid: uuid()});
@@ -476,10 +645,28 @@ function initBookMarks(document, window) {
 
   function handleAddBookmark(e) {
     let bookmarkText = document.getElementById('bookmarkText');
+    console.log('Get value of bookmark input', bookmarkText.value);
     if (!bookmarkText.value) {
       alert('Please enter bookmark title');
       return;
     }
+    let allSvgs = document.querySelectorAll('.annotationLayer');
+    for (let i = 0; i < allSvgs.length; i++) {
+      if (isElementInViewport(allSvgs[i])) {
+        currentPage = parseInt(allSvgs[i].getAttribute('data-pdf-annotate-page'));
+        console.log('current page is ', currentPage);
+        break;
+      }
+    }
+    function isElementInViewport(el) {
+      let rect = el.getBoundingClientRect();
+
+      return rect.bottom > 0 &&
+        rect.right > 0 &&
+        rect.left < (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */ &&
+        rect.top < (window.innerHeight || document.documentElement.clientHeight);
+    }
+
     let res = addBookMark(bookmarkText.value, currentPage);
     if (res) {
       let modal = document.getElementById('starPopuo');
@@ -491,6 +678,18 @@ function initBookMarks(document, window) {
       bookmarkText.value = '';
       attachBookMarkToView(bookMarkContainer);
     }
+    checkAndDisableDraw(false);
+  }
+  function checkAndDisableDraw(flag) {
+    let tooltype = localStorage.getItem(`${RENDER_OPTIONS.documentId}/tooltype`) || 'cursor';
+    if (tooltype === 'draw') {
+      if (flag) {
+        UI.disablePen();
+      }
+      else {
+        UI.enablePen();
+      }
+    }
   }
   document.getElementById('bookmark-button').addEventListener('click', handleAddBookmark);
   document.querySelector('.bookmark-toggle').addEventListener('click', function() {
@@ -500,53 +699,374 @@ function initBookMarks(document, window) {
     }
     body.classList.toggle('bookmark-open');
   });
+  document.querySelector('button[data-target="#starPopuo"]').addEventListener('click', function() {
+    checkAndDisableDraw(true);
+  });
+  document.querySelector('button[data-dismiss="modal"]').addEventListener('click', function() {
+    checkAndDisableDraw(false);
+  });
 }
 
-// Scale/rotate
-// (function() {
-//   function setScaleRotate(scale, rotate) {
-//     scale = parseFloat(scale, 1);
-//     rotate = parseInt(rotate, 10);
-//
-//     if (RENDER_OPTIONS.scale !== scale || RENDER_OPTIONS.rotate !== rotate) {
-//       RENDER_OPTIONS.scale = scale;
-//       RENDER_OPTIONS.rotate = rotate;
-//
-//       localStorage.setItem(`${RENDER_OPTIONS.documentId}/scale`, RENDER_OPTIONS.scale);
-//       localStorage.setItem(`${RENDER_OPTIONS.documentId}/rotate`, RENDER_OPTIONS.rotate % 360);
-//
-//       render();
-//     }
-//   }
-//
-//   function handleScaleChange(e) {
-//     setScaleRotate(e.target.value, RENDER_OPTIONS.rotate);
-//   }
-//
-//   function handleRotateCWClick() {
-//     setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate + 90);
-//   }
-//
-//   function handleRotateCCWClick() {
-//     setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate - 90);
-//   }
-//
-//   document.querySelector('.toolbar select.scale').value = RENDER_OPTIONS.scale;
-//   document.querySelector('.toolbar select.scale').addEventListener('change', handleScaleChange);
-//   document.querySelector('.toolbar .rotate-ccw').addEventListener('click', handleRotateCCWClick);
-//   document.querySelector('.toolbar .rotate-cw').addEventListener('click', handleRotateCWClick);
-// })();
+// Search Handler
+(function(document, window) {
+  // global variable for search state
+  let inputHolder = document.querySelector('.table-input');
+  let currentIndex = 0;
+  let searchMeta = [];
+  let lastSearchString = null;
 
-// Clear toolbar button
-// (function() {
-//   function handleClearClick() {
-//     if (confirm('Are you sure you want to clear annotations?')) {
-//       for (let i = 0; i < NUM_PAGES; i++) {
-//         document.querySelector(`div#pageContainer${i + 1} svg.annotationLayer`).innerHTML = '';
+  function updateSearchCounterDisplay(noResult, page) {
+    if (noResult) {
+      document.getElementById('currentItemLabel').innerText = 0;
+      document.getElementById('allItemLabel').innerText = 0;
+    }
+    else {
+      document.getElementById('currentItemLabel').innerText = page;
+      document.getElementById('allItemLabel').innerText = searchMeta.length;
+    }
+  }
+
+  function findByTextContent(needle, haystack, precise=false) {
+  // needle: String, the string to be found within the elements.
+  // haystack: String, a selector to be passed to document.querySelectorAll(),
+  //           NodeList, Array - to be iterated over within the function:
+  // precise: Boolean, true - searches for that precise string, surrounded by
+  //                          word-breaks,
+  //                   false - searches for the string occurring anywhere
+  var elems;
+
+  // no haystack we quit here, to avoid having to search
+  // the entire document:
+  if (!haystack) {
+    return false;
+  }
+  // if haystack is a string, we pass it to document.querySelectorAll(),
+  // and turn the results into an Array:
+  else if ('string' == typeof haystack) {
+    elems = [].slice.call(document.querySelectorAll(haystack), 0);
+  }
+  // if haystack has a length property, we convert it to an Array
+  // (if it's already an array, this is pointless, but not harmful):
+  else if (haystack.length) {
+    elems = [].slice.call(haystack, 0);
+  }
+
+  // work out whether we're looking at innerText (IE), or textContent
+  // (in most other browsers)
+  var textProp = 'textContent' in document ? 'textContent' : 'innerText',
+    // creating a regex depending on whether we want a precise match, or not:
+    reg  = new RegExp(needle, 'i'),
+      // iterating over the elems array:
+    found = elems.filter(function(el) {
+      // returning the elements in which the text is, or includes,
+      // the needle to be found:
+      return reg.test(el[textProp]);
+    });
+  return found.length ? found : false;
+}
+
+  async function queryPdf(searchString, precise = false) {
+    console.log('queryPDF called !!!!')
+    toggleLoader(true)
+    let searchStack = [];
+    // creating a regex depending on whether we want a precise match, or not:
+    let reg = new RegExp(searchString, "i");
+    for (let i = 1; i <= NUM_PAGES; i++) {
+      let pagePromise = await PDF_DOC.getPage(i);
+      let pageText = await pagePromise.getTextContent({normalizeWhitespace: true})
+      let result = await pageText.items.filter((el) => reg.test(el.str));
+      if (result.length) {searchStack.push({page: i, count: result.length})}
+    }
+    lastSearchString = searchString;
+    await searchStack.sort((a, b) => {return a.page - b.page;});
+    toggleLoader(false)
+    return searchStack
+  }
+
+  function checkString(queryString) {
+    return !!queryString.trim();
+  }
+
+  async function findNextOccurance() {
+    if (!checkString(inputHolder.value)) {
+      searchMeta = [];
+      updateSearchCounterDisplay(true, 0);
+      return;
+    }
+    if (inputHolder.value.trim() !== lastSearchString) {
+      searchMeta = await queryPdf(inputHolder.value.trim(), false)
+      lastSearchString = inputHolder.value.trim();
+    }
+    currentIndex += 1;
+    if (currentIndex > searchMeta.length) {currentIndex = 1}
+
+    if (searchMeta.length) {
+      try {
+        if (searchMeta[currentIndex - 1]) {
+          await render(searchMeta[currentIndex - 1].page);
+          findByTextContent(inputHolder.value.trim(), 'span', false).forEach((el) => {
+              let re = new RegExp(inputHolder.value.trim(), 'i');
+              el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
+          });
+        }
+        updateSearchCounterDisplay(false, currentIndex)
+      } catch (e) {
+        console.error('error  occured', e);
+        console.log('Skipping the page number as no result found')
+      }
+      return;
+    }
+    updateSearchCounterDisplay(true, 0)
+  }
+
+  async function findPrevOccurance() {
+    if (!checkString(inputHolder.value)) {
+      searchMeta = [];
+      updateSearchCounterDisplay(true, 0);
+      return;
+    }
+    if (inputHolder.value.trim() !== lastSearchString) {
+      searchMeta = await queryPdf(inputHolder.value.trim(), false)
+      lastSearchString = inputHolder.value.trim();
+    }
+    currentIndex -= 1;
+    if (currentIndex <= 0) {currentIndex = searchMeta.length}
+    if (searchMeta.length) {
+      try {
+        if (searchMeta[currentIndex - 1]) {
+          await render(searchMeta[currentIndex - 1].page);
+          findByTextContent(inputHolder.value, 'span', false).forEach((el) => {
+              let re = new RegExp(inputHolder.value.trim(), 'i');
+              el.innerHTML = el.innerHTML.replace(re, `<span class="search-highlight">${inputHolder.value}</span>`);
+          });
+        }
+        updateSearchCounterDisplay(!searchMeta.length || false, currentIndex)
+      } catch (e) {
+        console.log('Skipping the page number as no result found')
+      }
+      return;
+    }
+    updateSearchCounterDisplay(true, 0)
+  }
+
+  function resetSearch() {
+    let search = document.querySelectorAll('.search-highlight')
+    search.forEach((el) => {
+      el.parentNode.innerHTML = el.parentNode.textContent
+    });
+  }
+
+  document.querySelector('.close-search').addEventListener('click', function(e) {
+    resetSearch();
+    currentIndex = 0;
+    inputHolder.value = '';
+    lastSearchString = null;
+    searchMeta = [];
+    document.getElementById('currentItemLabel').innerText = '';
+    document.getElementById('allItemLabel').innerText = '';
+  });
+  document.getElementById('searchNext').addEventListener('click', findNextOccurance);
+  document.getElementById('searchPrev').addEventListener('click', findPrevOccurance);
+})(document, window);
+
+// scale rotate functions
+function initScaleRotate() {
+  let scaleEle = document.getElementById('scaleDropDown');
+  scaleEle.textContent = RENDER_OPTIONS.scale * 100 + '%';
+
+  function setScaleRotate(scale, rotate) {
+    scale = parseFloat(scale, 10);
+    rotate = parseInt(rotate, 10);
+
+    if (RENDER_OPTIONS.scale !== scale || RENDER_OPTIONS.rotate !== rotate) {
+      RENDER_OPTIONS.scale = scale;
+      RENDER_OPTIONS.rotate = rotate;
+      localStorage.setItem(`${RENDER_OPTIONS.documentId}/scale`, RENDER_OPTIONS.scale);
+      localStorage.setItem(`${RENDER_OPTIONS.documentId}/rotate`, RENDER_OPTIONS.rotate % 360);
+      render(currentPage);
+    }
+  }
+
+  function handleScaleChange(e) {
+    let target = e.currentTarget;
+    let scaleValue = target.getAttribute('data-value');
+    if (parseFloat(scaleValue)) {
+      if ((parseFloat(scaleValue) === 99)) {
+        scaleValue = ACTUAL_SCALE;
+      }
+      setScaleRotate(parseFloat(scaleValue), RENDER_OPTIONS.rotate);
+      document.getElementById('scaleDropDown').textContent = target.text;
+    }
+  }
+
+  // javascript for dropdown
+  document.getElementById('scaleDropDown').addEventListener('click', (event) => {
+    document.getElementById('myDropdown').classList.toggle('show');
+  });
+  // Close the dropdown if the user clicks outside of it
+  document.addEventListener('click', (event) => {
+    if (!event.target.matches('.dropbtn')) {
+      let dropdowns = document.getElementsByClassName('dropdown-content');
+      let i;
+      for (i = 0; i < dropdowns.length; i++) {
+        let openDropdown = dropdowns[i];
+        if (openDropdown.classList.contains('show')) {
+          openDropdown.classList.remove('show');
+        }
+      }
+    }
+  });
+  // javascript for dropdown end
+  document.querySelectorAll('.scale-values').forEach((el) => {
+    el.addEventListener('click', handleScaleChange);
+  });
+}
+
+// attach all key handlers
+(function keyBinder() {
+  // define all handler
+  let nextButton = document.getElementById('next');
+  let prevButton = document.getElementById('prev');
+
+  function handleKeyPress(e) {
+    let key = e.keyCode || e.which;
+    switch (key) {
+      case 13:
+        if (document.activeElement.tagName === 'INPUT') {
+          let pageToGo = parseInt(e.target.value);
+          if (pageToGo > 0 && pageToGo <= NUM_PAGES && typeof pageToGo === 'number') {
+            currentPage = pageToGo;
+            render(currentPage);
+          }
+          setPageNumber();
+        }
+        break;
+      case 37:
+        prevButton.click();
+        break;
+      case 39:
+        nextButton.click();
+        break;
+    }
+  }
+  document.addEventListener('keyup', handleKeyPress);
+})();
+
+
+// (function(){
+//   let myElement = document.getElementById('content-wrapper');
+//   myElement.addEventListener('touchstart', handleTouchStart, false);
+//   myElement.addEventListener('touchmove', handleTouchMove, false);
+//
+//   var xDown = null;
+//   var yDown = null;
+//
+//   function getTouches(evt) {
+//     return evt.touches ||             // browser API
+//            evt.originalEvent.touches; // jQuery
+//   }
+//
+//   function handleTouchStart(evt) {
+//       const firstTouch = getTouches(evt)[0];
+//       xDown = firstTouch.clientX;
+//       yDown = firstTouch.clientY;
+//   }
+//
+//   function handleTouchMove(evt) {
+//       if ( ! xDown || ! yDown ) {
+//           return;
 //       }
 //
-//       localStorage.removeItem(`${RENDER_OPTIONS.documentId}/annotations`);
-//     }
+//       var xUp = evt.touches[0].clientX;
+//       var yUp = evt.touches[0].clientY;
+//
+//       var xDiff = xDown - xUp;
+//       var yDiff = yDown - yUp;
+//
+//       if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
+//           if ( xDiff > 100 ) {
+//             if (devicePlateform !== 'desktop'
+//                 && RENDER_OPTIONS.scale < 0.75
+//                 && currentPage < NUM_PAGES
+//                 && toolType === 'cursor'
+//             ) {
+//               render(currentPage + 1)
+//             }
+//           }
+//           // else {
+//           //    if (devicePlateform !== 'desktop'
+//           //      && RENDER_OPTIONS.scale < 0.75
+//           //      && currentPage > 1
+//           //      && toolType === 'cursor') {
+//           //     render(currentPage - 1)
+//           //   }
+//           // }
+//       }
+//       /* reset values */
+//       xDown = null;
+//       yDown = null;
 //   }
-//   document.querySelector('a.clear').addEventListener('click', handleClearClick);
 // })();
+
+
+function toggleZindex(flag) {
+  let svg = document.querySelector('.annotationLayer');
+  let textLayer = document.querySelector('.textLayer');
+  if (svg) {
+    if (flag) {
+      svg.style.zIndex = '1';
+      textLayer.style.zIndex = '2';
+    }
+    else {
+      svg.style.zIndex = '2';
+      textLayer.style.zIndex = '1';
+    }
+  }
+}
+
+function urlify(textLayer) {
+  let svg = document.querySelector('.annotationLayer')
+  let urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+  let spanList = textLayer.querySelectorAll('span')
+
+  spanList.forEach( (el) => {
+    el.innerHTML  = el.textContent.replace(urlRegex, function(url,b,c) {
+      let url2 = (c === 'www.') ?  'http://' +url : url;
+      return `<span class="callback-links" data-url="${url2}">${url}</span>`;
+    })
+  })
+}
+
+function attachLinkCallback(){
+  document.querySelectorAll('.callback-links').forEach((el) => {
+    el.addEventListener('click', (event) => {
+      let url = event.currentTarget.getAttribute('data-url');
+      urlCallBack(url);
+      event.preventDefaults();
+      event.stopPropagation();
+    })
+  })
+}
+
+function urlCallBack(url2){
+  console.log('Call back from link in the native');
+  switch (devicePlateform) {
+    case 'android':
+      // eslint-disable-next-line no-undef
+      JSBridge.urlClickCallback(url2);
+      break;
+    case 'ios':
+      let appName = 'credowebview';
+      let actionType = 'openexternalurl';
+      let escapedJsonParameters = escape(url2);
+      let url = appName + '://' + actionType + '#' + escapedJsonParameters;
+      document.location.href = url;
+      break;
+    case 'desktop':
+      window.Bridge.urlClickCallback(url2);
+      break;
+    default:
+      console.error('Plateform Received is: ' + devicePlateform);
+      return;
+  }
+}

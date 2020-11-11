@@ -486,6 +486,7 @@ mark,
   height: auto;
 }
 
+
 .figure {
   display: inline-block;
 }
@@ -13013,8 +13014,14 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
   position: fixed;
   bottom: 15px;
   right: 15px;
-  z-index: 3;
+  z-index: 6; /*  added to  place allbutton above highlight layer*/
   text-align: right;
+}
+
+@media (max-width: 355px) {
+  .fixed-icons {
+    width: 240px;
+  }
 }
 
 .fixed-icons li {
@@ -13158,6 +13165,9 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
   z-index: 3;
 }
 
+.searchShow + .h-100 #content-wrapper{
+    top: calc(40px + 1rem);
+}
 .search-content .next-prev-search {
   position: absolute;
   right: calc(35px + 15px);
@@ -13202,7 +13212,20 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
   color: #9F1C1C;
   height: calc(35px + 5px);
   font-size: 16px;
-  padding-right: calc(35px + 90px) !important;
+  padding-right: calc(35px + 90px + 140px) !important;
+  border-radius: 50px;
+}
+
+.search-content .find-pdf-count {
+  position: absolute;
+  right: calc(35px + 57px + 25px);
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+          transform: translateY(-50%);
+}
+
+.search-content .find-pdf-count label {
+  margin-bottom: 0;
 }
 
 .pink {
@@ -13285,8 +13308,17 @@ a.btn, .swal2-container .swal2-popup a.swal2-confirm, .swal2-container .swal2-po
 .more-buttons .close-button {
   position: absolute;
   top: 100%;
-  right: 2px;
+  right: 3px;
   margin-top: 6px;
+}
+
+@media (max-width: 355px) {
+  .more-buttons .close-button {
+    position: fixed;
+    top: auto;
+    right: 18px;
+    bottom: 21px;
+  }
 }
 
 @media (max-width: 991.98px) {
