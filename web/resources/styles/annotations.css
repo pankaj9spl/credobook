@@ -476,3 +476,6 @@ h1 {
     height: 50px;
     width: 50px;
 }
+.content-back-btn {
+    z-index: 6 !important;
+}
